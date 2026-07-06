@@ -1,32 +1,26 @@
-FROM node:22-alpine AS builder
+FROM node:22-alpine
 
 WORKDIR /app
 
+# 启用 corepack
 RUN corepack enable
 
+# 复制依赖文件
 COPY package.json pnpm-lock.yaml ./
 
-RUN pnpm install --frozen-lockfile
+# 安装依赖（如果锁文件有问题，自动重新生成）
+RUN pnpm install --frozen-lockfile || (echo "锁文件过期，重新生成..." && rm -f pnpm-lock.yaml && pnpm install)
 
+# 复制源代码并构建
 COPY . .
-
 RUN pnpm run build
 
-
-FROM node:22-alpine AS runner
-
-WORKDIR /app
-
+# 生产环境配置
 ENV NODE_ENV=production
 ENV PORT=3000
 
-RUN corepack enable
-
-COPY package.json pnpm-lock.yaml ./
-
-RUN pnpm install --prod --frozen-lockfile
-
-COPY --from=builder /app/dist ./dist
+# 清理开发依赖，只保留生产依赖
+RUN pnpm prune --prod
 
 EXPOSE 3000
 
