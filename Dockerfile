@@ -8,12 +8,8 @@ RUN corepack enable
 # 复制依赖文件
 COPY package.json pnpm-lock.yaml ./
 
-# 安装依赖 - 自动处理构建脚本批准
-RUN pnpm install --frozen-lockfile || \
-    (echo "锁文件过期，重新生成..." && rm -f pnpm-lock.yaml && pnpm install)
-
-# 自动批准所有构建脚本（避免交互式提示）
-RUN pnpm approve-builds --global || true
+# 安装依赖
+RUN pnpm install --frozen-lockfile
 
 # 复制源代码并构建
 COPY . .
