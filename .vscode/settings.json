@@ -1,24 +1,25 @@
 {
-  // 保存时自动格式化
-  "editor.formatOnSave": true,
-  // 保存时自动修复 ESLint 问题
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
-  },
-  // 默认格式化工具使用 Prettier
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  // ESLint 校验的文件类型
-  "eslint.validate": [
-    "javascript",
-    "typescript"
-  ]
+	// 使用 tab 缩进，宽度显示为 4 个字符
+	"editor.insertSpaces": false,
+	"editor.tabSize": 4,
+	"editor.detectIndentation": false,
+	// 保存时自动格式化
+	"editor.formatOnSave": true,
+	// 保存时自动修复 ESLint 问题
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": "explicit"
+	},
+	// 默认格式化工具使用 Prettier
+	"editor.defaultFormatter": "esbenp.prettier-vscode",
+	"[typescript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[javascript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[json]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	// ESLint 校验的文件类型
+	"eslint.validate": ["javascript", "typescript"]
 }

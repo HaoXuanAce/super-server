@@ -1,29 +1,36 @@
 import { Injectable } from '@nestjs/common'
-import { AiService } from '../../ai/ai.service'
-import { ImageModel } from '../enums/image-model.enum'
-import { ImageProvider } from '../interfaces/image-provider.interface'
-import { GptImageDto } from '../dto/gpt-image.dto'
-import { ImageResult } from '../interface/image-result.interface'
-
+import type { CreateImageDto } from '../dto/create-image.dto'
+import axios from 'axios'
+import { ConfigService } from '@nestjs/config'
 @Injectable()
-export class GptImageProvider implements ImageProvider<GptImageDto> {
-	readonly model = ImageModel.GPT
+export class GptImageProvider {
+	constructor(private readonly configService: ConfigService) {}
 
-	constructor(private readonly ai: AiService) {}
+	async generate(query: CreateImageDto) {
+		const params = {
+			model: query.model,
+			prompt: query.prompt,
+			images: query.images,
+			metadata: {
+				aspect_ratio: query.ratio,
+				enhance_prompt: 'Enabled',
+				output_image_count: '1',
+			},
+		}
 
-	async generate(params: GptImageDto): Promise<ImageResult> {
-		const res = await this.ai.getClient().images.generate({
-			model: 'gpt-image-1',
-			prompt: params.prompt,
-			size: params.size,
-			quality: params.quality,
+		const baseUrl = this.configService.get<string>('baseurl')
+		const apikey = this.configService.get<string>('apikey')
+		const url = baseUrl + '/v1/images/generations/'
+		const token = `Bearer ${apikey}`
+
+		const data = await axios.post(url, params, {
+			headers: {
+				'Content-Type': 'application/json',
+				'X-DashScope-Async': 'enable',
+				Authorization: token,
+			},
 		})
 
-		return {
-			id: '',
-			prompt: params.prompt,
-			url: res.data?.[0]?.url ?? '',
-			createdAt: new Date(),
-		}
+		console.log(data)
 	}
 }

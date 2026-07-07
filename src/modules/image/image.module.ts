@@ -1,18 +1,14 @@
 import { Module } from '@nestjs/common'
 import { AiModule } from '../ai/ai.module'
+import { ImageController } from './image.controller'
 import { ImageService } from './image.service'
-import { ImageProviderRegistry } from './providers/image-provider.registry'
+import { DoubaoImageProvider } from './providers/doubao.provider'
 import { GptImageProvider } from './providers/gpt.provider'
-import { SeedanceImageProvider } from './providers/seedance.provider'
 
 @Module({
 	imports: [AiModule],
-	providers: [
-		ImageService,
-		ImageProviderRegistry,
-		GptImageProvider,
-		SeedanceImageProvider,
-	],
+	controllers: [ImageController],
+	providers: [ImageService, GptImageProvider, DoubaoImageProvider],
 	exports: [ImageService],
 })
 export class ImageModule {}
