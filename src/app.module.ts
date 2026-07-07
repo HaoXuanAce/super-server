@@ -2,7 +2,9 @@ import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
+import { DatabaseModule } from './core/database/database.module'
 import { AiModule } from './modules/ai/ai.module'
+import { ImageModule } from './modules/image/image.module'
 
 @Module({
 	imports: [
@@ -11,6 +13,8 @@ import { AiModule } from './modules/ai/ai.module'
 			envFilePath: '.env',
 		}),
 		AiModule,
+		DatabaseModule,
+		ImageModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],
