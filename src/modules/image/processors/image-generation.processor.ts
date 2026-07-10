@@ -4,9 +4,8 @@ import {
 	OnModuleDestroy,
 	OnModuleInit,
 } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { Worker } from 'bullmq'
-import { QueueConnectionService } from 'src/core/queue/queue-connection.service'
-import { QueueName } from 'src/core/queue/queue-name'
 import { TaskService } from 'src/modules/task/task.service'
 import type { CreateImageDto } from '../dto/create-image.dto'
 import { ImageQueueService } from '../image-queue.service'
@@ -22,13 +21,13 @@ export class ImageGenerationProcessor implements OnModuleInit, OnModuleDestroy {
 	private readonly worker: Worker<ImageJobData>
 
 	constructor(
-		private readonly queueConnection: QueueConnectionService,
+		private readonly configService: ConfigService,
 		private readonly imageService: ImageService,
 		private readonly imageQueueService: ImageQueueService,
 		private readonly taskService: TaskService,
 	) {
 		this.worker = new Worker(
-			QueueName.IMAGE_GENERATION,
+			'image-generation',
 			async (job) => {
 				if (job.name === 'poll') {
 					this.logger.log(`图片任务轮询: ${job.data.taskId}`)
@@ -38,7 +37,17 @@ export class ImageGenerationProcessor implements OnModuleInit, OnModuleDestroy {
 				return this.process(job.name, job.data.taskId)
 			},
 			{
-				connection: this.queueConnection.createWorkerConnection(),
+				connection: {
+					host: this.configService.getOrThrow<string>('REDIS_HOST'),
+					port: Number(
+						this.configService.getOrThrow<string>('REDIS_PORT'),
+					),
+					password: this.configService.get<string>('REDIS_PASSWORD'),
+					db: Number(
+						this.configService.getOrThrow<string>('REDIS_DB'),
+					),
+					maxRetriesPerRequest: null,
+				},
 				concurrency: 1,
 			},
 		)

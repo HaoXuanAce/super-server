@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common'
-import { QueueModule } from 'src/core/queue/queue.module'
 import { TaskModule } from 'src/modules/task/task.module'
 import { AiModule } from '../ai/ai.module'
 import { ImageController } from './image.controller'
@@ -9,7 +8,7 @@ import { DoubaoImageProvider } from './providers/doubao.provider'
 import { GptImageProvider } from './providers/gpt.provider'
 
 @Module({
-	imports: [AiModule, QueueModule, TaskModule],
+	imports: [AiModule, TaskModule],
 	controllers: [ImageController],
 	providers: [
 		ImageService,

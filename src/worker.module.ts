@@ -2,7 +2,9 @@ import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { DatabaseModule } from './core/database/database.module'
 import { AppLoggerModule } from './core/logger/logger.module'
-import { ImageWorkerModule } from './modules/image/image-worker.module'
+import { ImageModule } from './modules/image/image.module'
+import { ImageGenerationProcessor } from './modules/image/processors/image-generation.processor'
+import { TaskModule } from './modules/task/task.module'
 
 @Module({
 	imports: [
@@ -12,7 +14,9 @@ import { ImageWorkerModule } from './modules/image/image-worker.module'
 		}),
 		AppLoggerModule,
 		DatabaseModule,
-		ImageWorkerModule,
+		ImageModule,
+		TaskModule,
 	],
+	providers: [ImageGenerationProcessor],
 })
 export class WorkerModule {}
