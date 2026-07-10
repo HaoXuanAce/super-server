@@ -43,7 +43,6 @@ export class GptImageProvider {
 		})
 		console.log('🔥 [gpt.provider.ts] response:', response.data)
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 		const taskId = response.data.data?.[0]?.task_id as string | undefined
 		if (!taskId) {
 			throw new BadRequestException('图片生成任务创建失败')
@@ -55,7 +54,7 @@ export class GptImageProvider {
 	async pollTask(taskId: string) {
 		const url = this.baseUrl + this.imagePoll
 
-		const response = await axios.post(
+		const response = await axios.post<any>(
 			url,
 			{ task_id: taskId },
 			{
