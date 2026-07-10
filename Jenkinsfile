@@ -40,6 +40,14 @@ pipeline {
 
 
 
+        stage('检查部署配置') {
+            steps {
+                sh '''
+                    test -r "${ENV_FILE}"
+                '''
+            }
+        }
+
         stage('构建 Docker 镜像') {
             steps {
                 sh '''
@@ -62,8 +70,6 @@ pipeline {
         stage('启动 API 容器') {
             steps {
                 sh '''
-                    test -r "${ENV_FILE}"
-
                     echo "🚀 启动 API 容器..."
                     docker run -d \
                       --name ${API_CONTAINER_NAME} \
