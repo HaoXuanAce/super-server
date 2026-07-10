@@ -15,7 +15,7 @@ const prettierOptions = {
 
 export default tseslint.config(
 	{
-		ignores: ['eslint.config.mjs'],
+		ignores: ['eslint.config.mjs', '**/*.json'],
 	},
 	eslint.configs.recommended,
 	...tseslint.configs.recommendedTypeChecked,

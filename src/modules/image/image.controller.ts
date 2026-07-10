@@ -1,6 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common'
-
 import type { CreateImageDto } from './dto/create-image.dto'
+import type { PollImageTaskDto } from './dto/poll-image-task.dto'
 import { ImageService } from './image.service'
 
 @Controller('images')
@@ -11,5 +11,10 @@ export class ImageController {
 	@Post()
 	generate(@Body() dto: CreateImageDto) {
 		return this.imageService.create(dto)
+	}
+
+	@Post('pollTask')
+	pollTask(@Body() dto: PollImageTaskDto) {
+		return this.imageService.pollTask(dto.taskId)
 	}
 }

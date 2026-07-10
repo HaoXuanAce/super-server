@@ -5,7 +5,7 @@ import type { CreateImageDto } from '../dto/create-image.dto'
 export class DoubaoImageProvider {
 	readonly model = 'doubao'
 
-	async generate(params: CreateImageDto) {
+	generate(params: CreateImageDto) {
 		console.log(
 			'[doubao] generate',
 			params.prompt,

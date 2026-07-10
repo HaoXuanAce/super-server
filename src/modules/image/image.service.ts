@@ -18,4 +18,8 @@ export class ImageService {
 			return this.doubaoImageProvider.generate(dto)
 		}
 	}
+
+	pollTask(taskId: string) {
+		return this.gptImageProvider.pollTask(taskId)
+	}
 }
