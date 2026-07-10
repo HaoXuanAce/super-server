@@ -4,8 +4,10 @@ pipeline {
     environment {
         IMAGE_NAME = 'super-server'
         IMAGE_TAG = 'latest'
-        CONTAINER_NAME = 'super-server'
+        API_CONTAINER_NAME = 'super-server'
+        WORKER_CONTAINER_NAME = 'super-server-worker'
         APP_PORT = '3000'
+        ENV_FILE = '/opt/super-server/.env'
     }
 
     stages {
@@ -50,22 +52,38 @@ pipeline {
         stage('停止旧容器') {
             steps {
                 sh '''
-                    echo "🛑 停止旧容器..."
-                    docker stop ${CONTAINER_NAME} || true
-                    docker rm ${CONTAINER_NAME} || true
+                    echo "🛑 停止旧 API 和 Worker 容器..."
+                    docker stop ${API_CONTAINER_NAME} ${WORKER_CONTAINER_NAME} || true
+                    docker rm ${API_CONTAINER_NAME} ${WORKER_CONTAINER_NAME} || true
                 '''
             }
         }
 
-        stage('启动新容器') {
+        stage('启动 API 容器') {
             steps {
                 sh '''
-                    echo "🚀 启动新容器..."
+                    test -r "${ENV_FILE}"
+
+                    echo "🚀 启动 API 容器..."
                     docker run -d \
-                      --name ${CONTAINER_NAME} \
-                      -p ${APP_PORT}:${APP_PORT} \
+                      --name ${API_CONTAINER_NAME} \
+                      --env-file ${ENV_FILE} \
+                      -p ${APP_PORT}:3000 \
                       --restart=always \
                       ${IMAGE_NAME}:${IMAGE_TAG}
+                '''
+            }
+        }
+
+        stage('启动 Worker 容器') {
+            steps {
+                sh '''
+                    echo "🚀 启动图片任务 Worker 容器..."
+                    docker run -d \
+                      --name ${WORKER_CONTAINER_NAME} \
+                      --env-file ${ENV_FILE} \
+                      --restart=always \
+                      ${IMAGE_NAME}:${IMAGE_TAG} node dist/worker
                 '''
             }
         }
