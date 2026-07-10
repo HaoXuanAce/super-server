@@ -18,6 +18,7 @@ RUN pnpm run build
 # 生产环境配置
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV TZ=Asia/Shanghai
 
 # 清理开发依赖
 RUN pnpm prune --prod

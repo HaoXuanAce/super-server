@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
+import { join } from 'node:path'
 import {
 	utilities as nestWinstonModuleUtilities,
 	WinstonModule,
 } from 'nest-winston'
 import { format, transports } from 'winston'
+import DailyRotateFile from 'winston-daily-rotate-file'
 
 @Module({
 	imports: [
@@ -14,6 +16,8 @@ import { format, transports } from 'winston'
 			useFactory: (configService: ConfigService) => {
 				const isProduction =
 					configService.get<string>('NODE_ENV') === 'production'
+				const logDir = configService.get<string>('LOG_DIR', '/app/logs')
+				const logName = configService.get<string>('LOG_NAME', 'app')
 
 				return {
 					level: configService.get<string>(
@@ -33,7 +37,27 @@ import { format, transports } from 'winston'
 									},
 								),
 					),
-					transports: [new transports.Console()],
+					transports: [
+						new transports.Console(),
+						new DailyRotateFile({
+							dirname: join(logDir, logName),
+							filename: `%DATE%.${logName}.log`,
+							datePattern: 'YYYY-MM-DD',
+							maxFiles: '7d',
+							auditFile: join(logDir, `.${logName}-audit.json`),
+						}),
+						new DailyRotateFile({
+							dirname: join(logDir, `error-${logName}`),
+							filename: `%DATE%.error-${logName}.log`,
+							level: 'error',
+							datePattern: 'YYYY-MM-DD',
+							maxFiles: '7d',
+							auditFile: join(
+								logDir,
+								`.error-${logName}-audit.json`,
+							),
+						}),
+					],
 				}
 			},
 		}),

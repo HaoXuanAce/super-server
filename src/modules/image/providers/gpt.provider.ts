@@ -9,7 +9,7 @@ export class GptImageProvider {
 	private readonly apiKey: string
 	private readonly imageUrl: string
 	private readonly imagePoll: string
-	private readonly logger = new Logger()
+	private readonly logger = new Logger(GptImageProvider.name)
 
 	constructor(private readonly configService: ConfigService) {
 		this.baseUrl = this.configService.get<string>('JDTS-baseUrl')!
@@ -41,7 +41,7 @@ export class GptImageProvider {
 				Authorization: this.authHeader,
 			},
 		})
-		console.log('🔥 [gpt.provider.ts] response:', response.data)
+		this.logger.log(response.data, '图片生成接口响应')
 
 		const taskId = response.data.data?.[0]?.task_id as string | undefined
 		if (!taskId) {

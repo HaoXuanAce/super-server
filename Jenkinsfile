@@ -74,6 +74,8 @@ pipeline {
                     docker run -d \
                       --name ${API_CONTAINER_NAME} \
                       --env-file ${ENV_FILE} \
+                      -e LOG_NAME=api \
+                      -v /opt/super-server/logs:/app/logs \
                       -p ${APP_PORT}:3000 \
                       --restart=always \
                       ${IMAGE_NAME}:${IMAGE_TAG}
@@ -88,6 +90,8 @@ pipeline {
                     docker run -d \
                       --name ${WORKER_CONTAINER_NAME} \
                       --env-file ${ENV_FILE} \
+                      -e LOG_NAME=worker \
+                      -v /opt/super-server/logs:/app/logs \
                       --restart=always \
                       ${IMAGE_NAME}:${IMAGE_TAG} node dist/worker
                 '''
