@@ -12,7 +12,9 @@
 		"start": "nest start --watch",
 		"start:dev": "nest start --watch",
 		"start:debug": "nest start --debug --watch",
+		"dev:worker": "nest start --watch --entryFile worker",
 		"start:prod": "node dist/main",
+		"start:worker": "node dist/worker",
 		"lint": "eslint \"{src,apps,libs}/**/*.ts\" --fix"
 	},
 	"pnpm": {
@@ -28,6 +30,7 @@
 		"@nestjs/swagger": "^11.4.5",
 		"@nestjs/typeorm": "^11.0.3",
 		"axios": "^1.18.1",
+		"bullmq": "^5.79.3",
 		"ioredis": "^5.11.1",
 		"mysql2": "^3.22.5",
 		"nest-winston": "^1.10.2",

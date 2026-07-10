@@ -1,8 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import type { CreateImageDto } from '../dto/create-image.dto'
 import axios from 'axios'
 import { ConfigService } from '@nestjs/config'
-import { ResponseUtil } from 'src/common/utils/response.util'
 
 @Injectable()
 export class GptImageProvider {
@@ -10,6 +9,7 @@ export class GptImageProvider {
 	private readonly apiKey: string
 	private readonly imageUrl: string
 	private readonly imagePoll: string
+	private readonly logger = new Logger()
 
 	constructor(private readonly configService: ConfigService) {
 		this.baseUrl = this.configService.get<string>('JDTS-baseUrl')!
@@ -41,21 +41,21 @@ export class GptImageProvider {
 				Authorization: this.authHeader,
 			},
 		})
-		console.log('🔥 [gpt.provider.ts] response:', response)
+		console.log('🔥 [gpt.provider.ts] response:', response.data)
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		const taskId = response.data[0]?.task_id as string | undefined
+		const taskId = response.data.data?.[0]?.task_id as string | undefined
 		if (!taskId) {
 			throw new BadRequestException('图片生成任务创建失败')
 		}
 
-		return ResponseUtil.success({ taskId })
+		return { taskId }
 	}
 
 	async pollTask(taskId: string) {
 		const url = this.baseUrl + this.imagePoll
 
-		const response = await axios.post<Record<string, unknown>>(
+		const response = await axios.post(
 			url,
 			{ task_id: taskId },
 			{
@@ -65,12 +65,13 @@ export class GptImageProvider {
 				},
 			},
 		)
-		const result = {
-			status: response.data.status,
-			taskId: response.data.task_id,
-			url: response.data.id,
-		}
 
-		return ResponseUtil.success({ result })
+		this.logger.warn(response.data, '轮询的任务结果')
+		const result = response.data.data
+		return {
+			status: result.status,
+			taskId: result.task_id,
+			url: result.url,
+		}
 	}
 }

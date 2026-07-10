@@ -1,20 +1,14 @@
 import { Body, Controller, Post } from '@nestjs/common'
 import type { CreateImageDto } from './dto/create-image.dto'
-import type { PollImageTaskDto } from './dto/poll-image-task.dto'
-import { ImageService } from './image.service'
+import { ImageQueueService } from './image-queue.service'
 
 @Controller('images')
 export class ImageController {
-	constructor(private readonly imageService: ImageService) {}
+	constructor(private readonly imageQueueService: ImageQueueService) {}
 
 	// 生成图片
 	@Post()
 	generate(@Body() dto: CreateImageDto) {
-		return this.imageService.create(dto)
-	}
-
-	@Post('pollTask')
-	pollTask(@Body() dto: PollImageTaskDto) {
-		return this.imageService.pollTask(dto.taskId)
+		return this.imageQueueService.add(dto)
 	}
 }

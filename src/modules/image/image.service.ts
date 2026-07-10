@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import type { CreateImageDto } from './dto/create-image.dto'
 import { DoubaoImageProvider } from './providers/doubao.provider'
 import { GptImageProvider } from './providers/gpt.provider'
@@ -17,6 +17,8 @@ export class ImageService {
 		} else if (model.startsWith('doubao')) {
 			return this.doubaoImageProvider.generate(dto)
 		}
+
+		throw new BadRequestException('不支持的图片模型')
 	}
 
 	pollTask(taskId: string) {
