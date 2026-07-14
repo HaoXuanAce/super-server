@@ -29,7 +29,7 @@ class ApiExampleResponseDto {
 	method!: string
 
 	@ApiProperty({
-		example: '/images',
+		example: '/api/images',
 		description: '接口路径',
 	})
 	path!: string

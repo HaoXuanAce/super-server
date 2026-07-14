@@ -24,13 +24,13 @@ export class AppService {
 			{
 				module: 'app',
 				method: 'GET',
-				path: '/',
+				path: '/api',
 				description: '获取服务问候语',
 			},
 			{
 				module: 'image',
 				method: 'POST',
-				path: '/images',
+				path: '/api/images',
 				description: '图片生成接口示例，后续可以接入 ImageModule',
 			},
 		]

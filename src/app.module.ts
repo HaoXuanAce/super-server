@@ -9,6 +9,7 @@ import { DatabaseModule } from './core/database/database.module'
 import { AppLoggerModule } from './core/logger/logger.module'
 import { RedisModule } from './core/redis/redis.module'
 import { AiModule } from './modules/ai/ai.module'
+import { AuthModule } from './modules/auth/auth.module'
 import { ImageModule } from './modules/image/image.module'
 
 @Module({
@@ -19,6 +20,7 @@ import { ImageModule } from './modules/image/image.module'
 		}),
 		AppLoggerModule,
 		AiModule,
+		AuthModule,
 		DatabaseModule,
 		RedisModule,
 		ImageModule,
