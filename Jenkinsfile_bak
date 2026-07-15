@@ -6,8 +6,8 @@ pipeline {
         IMAGE_TAG = 'latest'
         API_CONTAINER_NAME = 'super-server'
         WORKER_CONTAINER_NAME = 'super-server-worker'
+        APP_PORT = '3000'
         ENV_FILE = '/opt/super-server/.env'
-        NETWORK_NAME = 'super-network'
     }
 
     stages {
@@ -37,12 +37,13 @@ pipeline {
             }
         }
 
+
+
+
         stage('检查部署配置') {
             steps {
                 sh '''
                     test -r "${ENV_FILE}"
-                    docker network inspect ${NETWORK_NAME} > /dev/null 2>&1 || \
-                      docker network create ${NETWORK_NAME}
                 '''
             }
         }
@@ -72,10 +73,10 @@ pipeline {
                     echo "🚀 启动 API 容器..."
                     docker run -d \
                       --name ${API_CONTAINER_NAME} \
-                      --network ${NETWORK_NAME} \
                       --env-file ${ENV_FILE} \
                       -e LOG_NAME=api \
                       -v /opt/super-server/logs:/app/logs \
+                      -p ${APP_PORT}:3000 \
                       --restart=always \
                       ${IMAGE_NAME}:${IMAGE_TAG}
                 '''
@@ -88,7 +89,6 @@ pipeline {
                     echo "🚀 启动图片任务 Worker 容器..."
                     docker run -d \
                       --name ${WORKER_CONTAINER_NAME} \
-                      --network ${NETWORK_NAME} \
                       --env-file ${ENV_FILE} \
                       -e LOG_NAME=worker \
                       -v /opt/super-server/logs:/app/logs \
