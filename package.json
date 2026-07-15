@@ -9,7 +9,7 @@
 	"scripts": {
 		"build": "nest build",
 		"format": "prettier --write \"src/**/*.ts\" \"*.mjs\" \"*.json\" \".prettierrc\"",
-		"start": "nest start --watch",
+		"dev": "nest start --watch",
 		"start:dev": "nest start --watch",
 		"start:debug": "nest start --debug --watch",
 		"dev:worker": "nest start --watch --entryFile worker",

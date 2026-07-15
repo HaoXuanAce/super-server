@@ -16,7 +16,10 @@ import DailyRotateFile from 'winston-daily-rotate-file'
 			useFactory: (configService: ConfigService) => {
 				const isProduction =
 					configService.get<string>('NODE_ENV') === 'production'
-				const logDir = configService.get<string>('LOG_DIR', '/app/logs')
+				const logDir = configService.get<string>(
+					'LOG_DIR',
+					'/tmp/super-server/logs',
+				)
 				const logName = configService.get<string>('LOG_NAME', 'app')
 
 				return {
