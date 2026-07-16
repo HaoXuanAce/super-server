@@ -11,7 +11,7 @@ export type ImageModelType =
 	| 'doubao-seedream-5-0-lite-250228'
 
 export class CreateImageDto {
-	model!: ImageModelType
+	model!: string
 	resolution!: '1k' | '2k' | '4k'
 	ratio!: '16:9' | '9:16' | '1:1' | '3:4' | '4:3' | '21:9'
 	prompt!: string
