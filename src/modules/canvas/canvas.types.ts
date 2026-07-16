@@ -49,7 +49,6 @@ export interface CanvasChanges {
 }
 
 export interface SaveCanvasChangesInput {
-	canvasId: string
 	baseVersion: number
 	changes: CanvasChanges
 	userId: string

@@ -27,6 +27,35 @@ export class CanvasService {
 		private readonly dataSource: DataSource,
 	) {}
 
+	findCanvasByUser(userId: string) {
+		return this.dataSource.transaction(async (manager) => {
+			const canvas = await manager.findOne(CanvasEntity, {
+				where: { ownerUserId: userId },
+			})
+
+			if (!canvas) {
+				throw new NotFoundException('画布不存在或无权访问')
+			}
+
+			const nodes = await manager.find(CanvasNodeEntity, {
+				where: { canvasId: canvas.id, deletedAt: IsNull() },
+				order: { createdAt: 'ASC' },
+			})
+			const edges = await manager.find(CanvasEdgeEntity, {
+				where: { canvasId: canvas.id, deletedAt: IsNull() },
+				order: { createdAt: 'ASC' },
+			})
+
+			return {
+				id: canvas.id,
+				name: canvas.name,
+				currentVersion: Number(canvas.currentVersion),
+				nodes: nodes.map((node) => this.toNodePayload(node)),
+				edges: edges.map((edge) => this.toEdgePayload(edge)),
+			}
+		})
+	}
+
 	saveChanges(
 		input: SaveCanvasChangesInput,
 	): Promise<SaveCanvasChangesResult> {
@@ -34,7 +63,7 @@ export class CanvasService {
 
 		return this.dataSource.transaction(async (manager) => {
 			const canvas = await manager.findOne(CanvasEntity, {
-				where: { id: input.canvasId, ownerUserId: input.userId },
+				where: { ownerUserId: input.userId },
 				lock: { mode: 'pessimistic_write' },
 			})
 
@@ -50,13 +79,13 @@ export class CanvasService {
 			const nextVersion = currentVersion + 1
 			await this.applyChanges(
 				manager,
-				input.canvasId,
+				canvas.id,
 				nextVersion,
 				input.changes,
 			)
 
 			await manager.save(CanvasVersionEntity, {
-				canvasId: input.canvasId,
+				canvasId: canvas.id,
 				version: String(nextVersion),
 				baseVersion: String(input.baseVersion),
 				operation: input.changes,
@@ -64,12 +93,12 @@ export class CanvasService {
 				createdByUserId: input.userId,
 			})
 
-			await manager.update(CanvasEntity, input.canvasId, {
+			await manager.update(CanvasEntity, canvas.id, {
 				currentVersion: String(nextVersion),
 			})
 
 			return {
-				canvasId: input.canvasId,
+				canvasId: canvas.id,
 				version: nextVersion,
 			}
 		})
@@ -129,13 +158,17 @@ export class CanvasService {
 
 		for (const node of nodeChanges.update ?? []) {
 			if (!this.hasNodePatch(node)) {
-				throw new BadRequestException(`节点 ${node.nodeId} 没有可更新的数据`)
+				throw new BadRequestException(
+					`节点 ${node.nodeId} 没有可更新的数据`,
+				)
 			}
 		}
 
 		for (const edge of edgeChanges.update ?? []) {
 			if (!this.hasEdgePatch(edge)) {
-				throw new BadRequestException(`边 ${edge.edgeId} 没有可更新的数据`)
+				throw new BadRequestException(
+					`边 ${edge.edgeId} 没有可更新的数据`,
+				)
 			}
 		}
 	}
@@ -181,7 +214,9 @@ export class CanvasService {
 			)
 
 			if (result.affected !== 1) {
-				throw new NotFoundException(`节点不存在或已删除：${node.nodeId}`)
+				throw new NotFoundException(
+					`节点不存在或已删除：${node.nodeId}`,
+				)
 			}
 		}
 	}
@@ -359,6 +394,21 @@ export class CanvasService {
 		}
 	}
 
+	private toNodePayload(node: CanvasNodeEntity): CanvasNodePayload {
+		return {
+			id: node.nodeId,
+			type: node.type,
+			position: {
+				x: Number(node.positionX),
+				y: Number(node.positionY),
+			},
+			data: node.data,
+			style: node.style,
+			width: this.toNullableNumber(node.width),
+			height: this.toNullableNumber(node.height),
+		}
+	}
+
 	private toNodePatch(
 		version: number,
 		node: CanvasNodeUpdatePayload,
@@ -401,6 +451,18 @@ export class CanvasService {
 			deletedAt: null,
 			createdAt: new Date(),
 			updatedAt: new Date(),
+		}
+	}
+
+	private toEdgePayload(edge: CanvasEdgeEntity): CanvasEdgePayload {
+		return {
+			id: edge.edgeId,
+			source: edge.sourceNodeId,
+			target: edge.targetNodeId,
+			sourceHandle: edge.sourceHandle,
+			targetHandle: edge.targetHandle,
+			type: edge.type,
+			data: edge.data,
 		}
 	}
 
@@ -452,5 +514,9 @@ export class CanvasService {
 		}
 
 		return String(value)
+	}
+
+	private toNullableNumber(value: string | null): number | null {
+		return value === null ? null : Number(value)
 	}
 }

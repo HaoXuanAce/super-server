@@ -11,15 +11,61 @@ canvas_version  每一批增量变更的历史记录
 
 节点和边不保存完整快照。前端只提交本次变更的节点、边，后端在一个事务中增量写入。这样即使画布节点很多，每次网络请求和数据库更新也只处理发生变化的数据。
 
+## 获取画布
+
+```text
+GET /api/canvas/detail
+Authorization: Bearer <token>
+```
+
+后端从 JWT 获取用户 ID，查询该用户的默认画布。用户注册时会自动创建该画布；画布不存在时返回 `404`。
+
+响应中的 `nodes`、`edges` 是数据库原始记录，前端自行转换为 Vue Flow 格式：
+
+```json
+{
+	"id": "canvas-id",
+	"name": "我的修图画布",
+	"currentVersion": 12,
+	"nodes": [
+		{
+			"canvasId": "canvas-id",
+			"nodeId": "node_1",
+			"type": "image",
+			"positionX": "240.0000",
+			"positionY": "160.0000",
+			"data": { "title": "原图" },
+			"style": null,
+			"width": "320.0000",
+			"height": "400.0000"
+		}
+	],
+	"edges": [
+		{
+			"canvasId": "canvas-id",
+			"edgeId": "edge_1",
+			"sourceNodeId": "node_1",
+			"targetNodeId": "node_2",
+			"sourceHandle": null,
+			"targetHandle": null,
+			"type": "default",
+			"data": null
+		}
+	]
+}
+```
+
+接口只返回未软删除的节点和边。前端加载后自行将 `response.data.nodes`、`response.data.edges` 转换为 Vue Flow 结构，并将 `currentVersion` 作为后续 `POST /api/canvas/update` 的 `baseVersion`。
+
 ## 接口
 
 ```text
-PATCH /api/canvases/:canvasId/changes
+POST /api/canvas/update
 Authorization: Bearer <token>
 Content-Type: application/json
 ```
 
-`canvasId` 是 URL 参数。后端从 JWT 中获取当前用户 ID，并要求 `canvas.ownerUserId` 等于当前用户；不能在请求体里传 `userId`，也不能修改别人的画布。
+后端从 JWT 获取用户 ID，并更新该用户的默认画布。不能在请求体里传 `userId` 或 `canvasId`，也不能修改别人的画布。
 
 请求体：
 
@@ -124,7 +170,7 @@ let currentVersion = 0
 
 function saveChanges(changes: object) {
 	const task = saveQueue.then(async () => {
-		const response = await api.patch(`/canvases/${canvasId}/changes`, {
+		const response = await api.post('/canvas/update', {
 			baseVersion: currentVersion,
 			...changes,
 		})

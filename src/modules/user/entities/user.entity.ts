@@ -23,7 +23,7 @@ export class UserEntity {
 	@Column({ type: 'varchar', length: 128, nullable: true, unique: true })
 	wechatOpenId!: string | null
 
-	@Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
+	@Column({ type: 'decimal', precision: 15, scale: 2, default: 100 })
 	balance!: string
 
 	@CreateDateColumn()

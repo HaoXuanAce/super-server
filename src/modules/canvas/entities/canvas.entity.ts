@@ -2,7 +2,6 @@ import {
 	Column,
 	CreateDateColumn,
 	Entity,
-	Index,
 	PrimaryGeneratedColumn,
 	UpdateDateColumn,
 } from 'typeorm'
@@ -12,8 +11,7 @@ export class CanvasEntity {
 	@PrimaryGeneratedColumn('uuid')
 	id!: string
 
-	@Index()
-	@Column({ type: 'varchar', length: 36, nullable: true })
+	@Column({ type: 'varchar', length: 36, nullable: true, unique: true })
 	ownerUserId!: string | null
 
 	@Column({ type: 'varchar', length: 191 })

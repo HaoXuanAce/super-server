@@ -1,6 +1,7 @@
 import { ConflictException, Injectable } from '@nestjs/common'
-import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm'
+import { DataSource, Repository } from 'typeorm'
+import { CanvasEntity } from '../canvas/entities/canvas.entity'
 import { UserEntity } from './entities/user.entity'
 
 export interface CreateUserInput {
@@ -20,18 +21,30 @@ export interface UserProfile {
 @Injectable()
 export class UserService {
 	constructor(
+		@InjectDataSource()
+		private readonly dataSource: DataSource,
 		@InjectRepository(UserEntity)
 		private readonly userRepository: Repository<UserEntity>,
 	) {}
 
 	async create(input: CreateUserInput): Promise<UserEntity> {
 		try {
-			return await this.userRepository.save({
-				email: input.email ?? null,
-				phone: input.phone ?? null,
-				passwordHash: input.passwordHash ?? null,
-				wechatOpenId: null,
-				balance: '0.00',
+			return await this.dataSource.transaction(async (manager) => {
+				const user = await manager.save(UserEntity, {
+					email: input.email ?? null,
+					phone: input.phone ?? null,
+					passwordHash: input.passwordHash ?? null,
+					wechatOpenId: null,
+					balance: '100.00',
+				})
+
+				await manager.save(CanvasEntity, {
+					ownerUserId: user.id,
+					name: '我的画布',
+					currentVersion: '0',
+				})
+
+				return user
 			})
 		} catch (error) {
 			if (this.isDuplicateEntryError(error)) {
