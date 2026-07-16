@@ -10,7 +10,10 @@ import { AppLoggerModule } from './core/logger/logger.module'
 import { RedisModule } from './core/redis/redis.module'
 import { AiModule } from './modules/ai/ai.module'
 import { AuthModule } from './modules/auth/auth.module'
+import { CanvasModule } from './modules/canvas/canvas.module'
+import { HotImageModule } from './modules/hot-image/hot-image.module'
 import { ImageModule } from './modules/image/image.module'
+import { OssModule } from './modules/oss/oss.module'
 
 @Module({
 	imports: [
@@ -24,6 +27,9 @@ import { ImageModule } from './modules/image/image.module'
 		DatabaseModule,
 		RedisModule,
 		ImageModule,
+		CanvasModule,
+		HotImageModule,
+		OssModule,
 	],
 	controllers: [AppController],
 	providers: [

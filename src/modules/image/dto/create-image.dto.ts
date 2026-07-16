@@ -13,8 +13,9 @@ export type ImageModelType =
 export class CreateImageDto {
 	model!: ImageModelType
 	resolution!: '1k' | '2k' | '4k'
-	ratio!: '16:9' | '9:16' | '1:1' | '3:4' | '4:3'
+	ratio!: '16:9' | '9:16' | '1:1' | '3:4' | '4:3' | '21:9'
 	prompt!: string
 	images?: string[]
 	output_image_count?: number
+	filter!: string
 }
