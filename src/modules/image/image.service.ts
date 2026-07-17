@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { InjectDataSource } from '@nestjs/typeorm'
 import axios from 'axios'
 import { randomUUID } from 'node:crypto'
 import type {
@@ -8,9 +9,11 @@ import type {
 	ImageProviderName,
 	NormalizedImageRequest,
 } from 'src/common/interface/image.interface'
-import type { TaskEntity } from '../task/entities/task.entity'
-import { TaskService } from '../task/task.service'
+import { DataSource, MoreThanOrEqual, Not } from 'typeorm'
+import { TaskEntity } from '../task/entities/task.entity'
+import { UserEntity } from '../user/entities/user.entity'
 import type { CreateImageDto } from './dto/create-image.dto'
+import { BalanceLedgerEntity } from './entities/balance-ledger.entity'
 import { ImageQueueService } from './image-queue.service'
 
 @Injectable()
@@ -18,62 +21,86 @@ export class ImageService {
 	private readonly logger = new Logger(ImageService.name)
 
 	constructor(
+		@InjectDataSource()
+		private readonly dataSource: DataSource,
 		private readonly configService: ConfigService,
-		private readonly taskService: TaskService,
 		private readonly imageQueueService: ImageQueueService,
 	) {}
 
 	async submit(userId: string, dto: CreateImageDto) {
-		if (dto.clientRequestId) {
-			const existingTask = await this.taskService.findByClientRequestId(
-				userId,
-				dto.clientRequestId,
-			)
-			if (existingTask) {
-				return this.toSubmitResult(existingTask, true)
-			}
-		}
-
-		const request = this.normalizeRequest(dto)
-		const price = this.calculatePrice(dto)
+		const normalizeData = this.normalizeParams(dto)
+		const price = this.calculatePrice(normalizeData)
 		const taskId = randomUUID()
-		let taskCreated = false
 
-		// TODO: 改成真实事务：锁定用户余额、扣费、写流水、创建任务和 outbox。
-		await this.chargeBalance(userId, taskId, price.amount)
+		const task = await this.dataSource.transaction(async (manager) => {
+			const userRepository = manager.getRepository(UserEntity)
+			const deduction = await userRepository.decrement(
+				{
+					id: userId,
+					balance: MoreThanOrEqual(String(price)),
+				},
+				'balance',
+				price,
+			)
+
+			if (deduction.affected !== 1) {
+				throw new BadRequestException('余额不足')
+			}
+
+			const user = await userRepository.findOneBy({ id: userId })
+			if (!user) {
+				throw new BadRequestException('用户不存在')
+			}
+
+			const balanceAfter = Number(user.balance)
+			const balanceBefore = balanceAfter + price
+
+			await manager.save(BalanceLedgerEntity, {
+				userId,
+				type: 'image_charge',
+				amount: String(price),
+				balanceBefore: String(balanceBefore),
+				balanceAfter: String(balanceAfter),
+				referenceType: 'image_task',
+				referenceId: taskId,
+				reason: null,
+			})
+
+			return manager.save(
+				manager.create(TaskEntity, {
+					id: taskId,
+					type: 'image',
+					status: 'pending',
+					userId,
+					provider: normalizeData.provider,
+					model: normalizeData.model,
+					input: normalizeData,
+					chargeAmount: price,
+					billingStatus: 'charged',
+					pricingSnapshot: {
+						price,
+						model: normalizeData.model,
+						resolution: normalizeData.resolution,
+						quality: normalizeData.quality,
+						imageCount: normalizeData.imageCount,
+						outputImageCount: normalizeData.output_image_count,
+					},
+					providerTaskId: null,
+					result: null,
+					errorMessage: null,
+					refundedAt: null,
+				}),
+			)
+		})
 
 		try {
-			const task = await this.taskService.create({
-				id: taskId,
-				type: 'image',
-				userId,
-				provider: request.provider,
-				model: request.model,
-				input: request,
-				chargeAmount: price.amount,
-				pricingSnapshot: price.snapshot,
-				clientRequestId: dto.clientRequestId,
-			})
-			taskCreated = true
-
-			await this.taskService.update(taskId, { billingStatus: 'charged' })
 			await this.imageQueueService.enqueue(taskId)
-
-			return this.toSubmitResult(task, false)
 		} catch (error) {
 			const reason =
 				error instanceof Error ? error.message : '任务创建或入队失败'
 
 			try {
-				await this.refundBalance(userId, taskId, price.amount, reason)
-				if (taskCreated) {
-					await this.taskService.update(taskId, {
-						status: 'failed',
-						billingStatus: 'refunded',
-						errorMessage: reason,
-						refundedAt: new Date(),
-					})
-				}
+				await this.failTaskAndRefund(taskId, `队列投递失败：${reason}`)
 			} catch (refundError) {
 				this.logger.error(
 					`提交失败后的退款处理失败: ${taskId}`,
@@ -85,6 +112,62 @@ export class ImageService {
 
 			throw error
 		}
+
+		return this.toSubmitResult(task)
+	}
+
+	normalizeParams(oldParams: CreateImageDto): NormalizedImageRequest {
+		let model: string
+		if (oldParams.model === 'gpt') {
+			model = `chatGTPImage2_${oldParams.quality}-${oldParams.resolution.toUpperCase()}`
+		} else {
+			model = 'doubao-seedream-5-0-lite-250228'
+		}
+
+		const matches = oldParams.prompt.match(/\{\{Image\d+\}\}/g) || []
+
+		return {
+			...oldParams,
+			provider: oldParams.model,
+			model,
+			imageCount: matches.length,
+		}
+	}
+
+	calculatePrice(normalizeData: NormalizedImageRequest): number {
+		const { model, resolution, quality, imageCount, output_image_count } =
+			normalizeData
+
+		if (model.startsWith('chatGTP')) {
+			const priceTable = {
+				'1k': {
+					low: 0.05,
+					medium: 0.4,
+					high: 1.6,
+				},
+				'2k': {
+					low: 0.09,
+					medium: 0.8,
+					high: 3.2,
+				},
+				'4k': {
+					low: 0.15,
+					medium: 1.4,
+					high: 5.4,
+				},
+			}
+
+			const basePrice = priceTable[resolution][quality]
+			const price = Math.round(
+				(basePrice + 0.1 * imageCount + 0.02) *
+					100 *
+					output_image_count,
+			)
+
+			return price
+		}
+
+		throw new BadRequestException('豆包模型暂未配置价格')
 	}
 
 	create(request: NormalizedImageRequest): Promise<ImageGenerateResult> {
@@ -111,127 +194,84 @@ export class ImageService {
 		errorMessage: string,
 		result?: object,
 	): Promise<void> {
-		const task = await this.taskService.find(taskId)
-		if (task.status === 'completed' || task.billingStatus === 'refunded') {
-			return
-		}
-
-		await this.taskService.update(taskId, {
-			status: 'failed',
-			errorMessage,
-			result: result ?? task.result,
-		})
-
-		if (task.billingStatus !== 'charged' || !task.userId) {
-			return
-		}
-
-		await this.refundBalance(
-			task.userId,
-			taskId,
-			task.chargeAmount,
-			errorMessage,
-		)
-		await this.taskService.update(taskId, {
-			billingStatus: 'refunded',
-			refundedAt: new Date(),
-		})
-	}
-
-	private normalizeRequest(dto: CreateImageDto): NormalizedImageRequest {
-		if (dto.model.startsWith('chatGTPImage2')) {
-			return {
-				provider: 'gpt',
-				model: dto.model,
-				payload: {
-					model: dto.model,
-					prompt: dto.prompt,
-					images: dto.images,
-					metadata: {
-						aspect_ratio: dto.ratio,
-						enhance_prompt: 'Enabled',
-						output_image_count: String(dto.output_image_count),
-					},
-				},
+		await this.dataSource.transaction(async (manager) => {
+			const taskRepository = manager.getRepository(TaskEntity)
+			const userRepository = manager.getRepository(UserEntity)
+			const task = await taskRepository.findOneBy({ id: taskId })
+			if (!task) {
+				throw new BadRequestException('任务不存在')
 			}
-		}
 
-		if (dto.model.startsWith('doubao')) {
-			return {
-				provider: 'doubao',
-				model: dto.model,
-				payload: {
-					model: dto.model,
-					prompt: dto.prompt,
-					size: dto.resolution,
-					aspectRatio: dto.ratio,
-					imageUrls: dto.images ?? [],
-					count: dto.output_image_count,
-				},
+			if (
+				task.status === 'completed' ||
+				task.billingStatus === 'refunded'
+			) {
+				return
 			}
-		}
 
-		throw new BadRequestException(`不支持的图片模型：${dto.model}`)
-	}
+			if (task.billingStatus !== 'charged' || !task.userId) {
+				await taskRepository.update(taskId, {
+					status: 'failed',
+					errorMessage,
+					result: result ?? task.result,
+				})
+				return
+			}
 
-	private calculatePrice(dto: CreateImageDto) {
-		const unitPriceMap: Record<string, number> = {
-			chatGTPImage2_low: 100,
-			chatGTPImage2_medium: 200,
-			chatGTPImage2_high: 300,
-			doubao: 150,
-		}
-		const priceKey = Object.keys(unitPriceMap).find((key) =>
-			dto.model.startsWith(key),
-		)
-		const unitPriceCents = priceKey ? unitPriceMap[priceKey] : 100
-		const amountCents = unitPriceCents * dto.output_image_count
+			const refundAmount = Number(task.chargeAmount)
+			if (!Number.isFinite(refundAmount)) {
+				throw new Error('退款金额格式错误')
+			}
 
-		console.log('[ImageService] 模拟计算价格', {
-			model: dto.model,
-			unitPriceCents,
-			amountCents,
+			const refundedAt = new Date()
+			const claim = await taskRepository.update(
+				{
+					id: taskId,
+					billingStatus: 'charged',
+					status: Not('completed'),
+				},
+				{
+					status: 'failed',
+					billingStatus: 'refunded',
+					errorMessage,
+					result: result ?? task.result,
+					refundedAt,
+				},
+			)
+
+			if (claim.affected !== 1) {
+				return
+			}
+
+			const credit = await userRepository.increment(
+				{ id: task.userId },
+				'balance',
+				refundAmount,
+			)
+
+			if (credit.affected !== 1) {
+				throw new BadRequestException('退款用户不存在')
+			}
+
+			const user = await userRepository.findOneBy({ id: task.userId })
+			if (!user) {
+				throw new BadRequestException('退款用户不存在')
+			}
+
+			const balanceAfter = Number(user.balance)
+			const balanceBefore = balanceAfter - refundAmount
+
+			await manager.save(BalanceLedgerEntity, {
+				userId: task.userId,
+				type: 'image_refund',
+				amount: String(refundAmount),
+				balanceBefore: String(balanceBefore),
+				balanceAfter: String(balanceAfter),
+				referenceType: 'image_task',
+				referenceId: taskId,
+				reason: errorMessage.slice(0, 191),
+			})
 		})
-
-		return {
-			amount: (amountCents / 100).toFixed(2),
-			snapshot: {
-				model: dto.model,
-				resolution: dto.resolution,
-				outputImageCount: dto.output_image_count,
-				unitPriceCents,
-			},
-		}
-	}
-
-	private chargeBalance(
-		userId: string,
-		taskId: string,
-		amount: string,
-	): Promise<void> {
-		// TODO: 校验余额并原子扣除 users.balance，同时写 balance_ledger。
-		console.log('[ImageService] 模拟余额校验和扣费', {
-			userId,
-			taskId,
-			amount,
-		})
-		return Promise.resolve()
-	}
-
-	private refundBalance(
-		userId: string,
-		taskId: string,
-		amount: string,
-		reason: string,
-	): Promise<void> {
-		// TODO: 通过账务流水唯一约束实现幂等退款。
-		console.log('[ImageService] 模拟退款', {
-			userId,
-			taskId,
-			amount,
-			reason,
-		})
-		return Promise.resolve()
 	}
 
 	private async generateWithGpt(
@@ -240,12 +280,25 @@ export class ImageService {
 		const url =
 			this.configService.getOrThrow<string>('JDTS-baseUrl') +
 			this.configService.getOrThrow<string>('JDTS-imageUrl')
-		const response = await axios.post(url, request.payload, {
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${this.configService.getOrThrow<string>('JDTS-apiKey')}`,
+		const response = await axios.post(
+			url,
+			{
+				model: request.model,
+				prompt: request.prompt,
+				images: request.images,
+				metadata: {
+					aspect_ratio: request.ratio,
+					enhance_prompt: 'Enabled',
+					output_image_count: String(request.output_image_count),
+				},
 			},
-		})
+			{
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${this.configService.getOrThrow<string>('JDTS-apiKey')}`,
+				},
+			},
+		)
 		const providerTaskId = response.data.data?.[0]?.task_id as
 			string | undefined
 
@@ -291,7 +344,7 @@ export class ImageService {
 		request: NormalizedImageRequest,
 	): Promise<ImageGenerateResult> {
 		// TODO: 在这里替换成真实豆包图片接口请求。
-		console.log('[ImageService] 模拟豆包图片请求', request.payload)
+		console.log('[ImageService] 模拟豆包图片请求', request)
 
 		return Promise.resolve({
 			status: 'completed',
@@ -302,14 +355,13 @@ export class ImageService {
 		})
 	}
 
-	private toSubmitResult(task: TaskEntity, idempotent: boolean) {
+	private toSubmitResult(task: TaskEntity) {
 		return {
 			taskId: task.id,
 			status: task.status,
 			provider: task.provider,
 			chargedAmount: task.chargeAmount,
 			currency: 'CNY',
-			idempotent,
 		}
 	}
 }

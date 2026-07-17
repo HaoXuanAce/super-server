@@ -51,7 +51,7 @@ export class ImageGenerationProcessor implements OnModuleInit, OnModuleDestroy {
 					),
 					maxRetriesPerRequest: null,
 				},
-				concurrency: 1,
+				concurrency: 10,
 			},
 		)
 
@@ -85,6 +85,15 @@ export class ImageGenerationProcessor implements OnModuleInit, OnModuleDestroy {
 
 	private async generate(taskId: string) {
 		const task = await this.taskService.find(taskId)
+		if (
+			task.status === 'completed' ||
+			task.status === 'failed' ||
+			task.billingStatus === 'refunded'
+		) {
+			this.logger.warn(`跳过已结束的图片任务: ${taskId}`)
+			return task
+		}
+
 		await this.taskService.update(taskId, { status: 'processing' })
 
 		const result = await this.imageService.create(
@@ -107,6 +116,15 @@ export class ImageGenerationProcessor implements OnModuleInit, OnModuleDestroy {
 
 	private async poll(taskId: string) {
 		const task = await this.taskService.find(taskId)
+		if (
+			task.status === 'completed' ||
+			task.status === 'failed' ||
+			task.billingStatus === 'refunded'
+		) {
+			this.logger.warn(`跳过已结束的图片轮询任务: ${taskId}`)
+			return task
+		}
+
 		if (!task.provider || !task.providerTaskId) {
 			throw new Error('图片任务缺少 provider 或 providerTaskId')
 		}

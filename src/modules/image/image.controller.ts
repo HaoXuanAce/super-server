@@ -9,7 +9,7 @@ import { ImageService } from './image.service'
 export class ImageController {
 	constructor(private readonly imageService: ImageService) {}
 
-	@Post()
+	@Post('create')
 	generate(
 		@Body() dto: CreateImageDto,
 		@Req() request: AuthenticatedRequest,

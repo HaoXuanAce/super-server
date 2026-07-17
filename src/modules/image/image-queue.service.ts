@@ -26,7 +26,7 @@ export class ImageQueueService implements OnModuleDestroy {
 	}
 
 	async enqueue(taskId: string) {
-		// TODO: 生产环境改为 transactional outbox，避免数据库成功但 Redis 投递失败。
+		// Redis 投递失败时，由 ImageService 执行事务退款。
 		await this.queue.add('generate', { taskId }, { jobId: taskId })
 		this.logger.log(`图片任务已入队: ${taskId}`)
 	}

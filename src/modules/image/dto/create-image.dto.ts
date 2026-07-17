@@ -6,36 +6,34 @@ import {
 	IsInt,
 	IsOptional,
 	IsString,
-	IsUUID,
 	Max,
 	MaxLength,
 	Min,
 } from 'class-validator'
+import type {
+	ImageProviderName,
+	ImageQuality,
+	ImageRatio,
+	ImageResolution,
+} from 'src/common/interface/image.interface'
 
-export const IMAGE_MODEL_TYPES = [
-	'chatGTPImage2_low-1K',
-	'chatGTPImage2_low-2K',
-	'chatGTPImage2_low-4K',
-	'chatGTPImage2_medium-1K',
-	'chatGTPImage2_medium-2K',
-	'chatGTPImage2_medium-4K',
-	'chatGTPImage2_high-1K',
-	'chatGTPImage2_high-2K',
-	'chatGTPImage2_high-4K',
-	'doubao-seedream-5-0-lite-250228',
-] as const
-
-export type ImageModelType = (typeof IMAGE_MODEL_TYPES)[number]
+const IMAGE_PROVIDERS: ImageProviderName[] = ['gpt', 'doubao']
+const IMAGE_RESOLUTIONS: ImageResolution[] = ['1k', '2k', '4k']
+const IMAGE_QUALITIES: ImageQuality[] = ['low', 'medium', 'high']
+const IMAGE_RATIOS: ImageRatio[] = ['16:9', '9:16', '1:1', '3:4', '4:3', '21:9']
 
 export class CreateImageDto {
-	@IsIn(IMAGE_MODEL_TYPES)
-	model!: ImageModelType
+	@IsIn(IMAGE_PROVIDERS)
+	model!: ImageProviderName
 
-	@IsIn(['1k', '2k', '4k'])
-	resolution!: '1k' | '2k' | '4k'
+	@IsIn(IMAGE_RESOLUTIONS)
+	resolution!: ImageResolution
 
-	@IsIn(['16:9', '9:16', '1:1', '3:4', '4:3', '21:9'])
-	ratio!: '16:9' | '9:16' | '1:1' | '3:4' | '4:3' | '21:9'
+	@IsIn(IMAGE_QUALITIES)
+	quality!: ImageQuality
+
+	@IsIn(IMAGE_RATIOS)
+	ratio!: ImageRatio
 
 	@IsString()
 	@MaxLength(4000)
@@ -58,8 +56,4 @@ export class CreateImageDto {
 	@IsString()
 	@MaxLength(128)
 	filter?: string
-
-	@IsOptional()
-	@IsUUID()
-	clientRequestId?: string
 }

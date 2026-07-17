@@ -11,7 +11,6 @@ export type TaskStatus = 'pending' | 'processing' | 'completed' | 'failed'
 export type TaskBillingStatus = 'pending' | 'charged' | 'refunded'
 
 @Entity('tasks')
-@Index(['userId', 'clientRequestId'], { unique: true })
 export class TaskEntity {
 	@PrimaryColumn({ type: 'varchar', length: 36 })
 	id!: string
@@ -36,16 +35,13 @@ export class TaskEntity {
 	input!: object
 
 	@Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
-	chargeAmount!: string
+	chargeAmount!: number
 
 	@Column({ type: 'varchar', length: 32, default: 'pending' })
 	billingStatus!: TaskBillingStatus
 
 	@Column({ type: 'json', nullable: true })
 	pricingSnapshot!: object | null
-
-	@Column({ type: 'varchar', length: 64, nullable: true })
-	clientRequestId!: string | null
 
 	@Column({ type: 'varchar', length: 255, nullable: true })
 	providerTaskId!: string | null
