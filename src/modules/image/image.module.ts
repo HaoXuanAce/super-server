@@ -1,21 +1,15 @@
 import { Module } from '@nestjs/common'
+import { TypeOrmModule } from '@nestjs/typeorm'
 import { TaskModule } from 'src/modules/task/task.module'
-import { AiModule } from '../ai/ai.module'
 import { ImageController } from './image.controller'
+import { BalanceLedgerEntity } from './entities/balance-ledger.entity'
 import { ImageQueueService } from './image-queue.service'
 import { ImageService } from './image.service'
-import { DoubaoImageProvider } from './providers/doubao.provider'
-import { GptImageProvider } from './providers/gpt.provider'
 
 @Module({
-	imports: [AiModule, TaskModule],
+	imports: [TaskModule, TypeOrmModule.forFeature([BalanceLedgerEntity])],
 	controllers: [ImageController],
-	providers: [
-		ImageService,
-		ImageQueueService,
-		GptImageProvider,
-		DoubaoImageProvider,
-	],
+	providers: [ImageService, ImageQueueService],
 	exports: [ImageService, ImageQueueService],
 })
 export class ImageModule {}

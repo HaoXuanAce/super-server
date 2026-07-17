@@ -7,16 +7,8 @@ import { ConfigService } from '@nestjs/config'
 import OSS from 'ali-oss'
 import path from 'node:path'
 import { randomUUID } from 'node:crypto'
+import type { UploadedOssFile } from 'src/common/interface/oss.interface'
 import type { OssUploadedFile } from './oss.types'
-
-export interface UploadedOssFile {
-	objectKey: string
-	url: string
-	previewUrl: string
-	name: string
-	size: number
-	mimeType: string
-}
 
 @Injectable()
 export class OssService {

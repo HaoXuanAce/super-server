@@ -1,18 +1,13 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Queue } from 'bullmq'
-import { TaskService } from 'src/modules/task/task.service'
-import type { CreateImageDto } from './dto/create-image.dto'
 
 @Injectable()
 export class ImageQueueService implements OnModuleDestroy {
 	private readonly logger = new Logger(ImageQueueService.name)
 	private readonly queue: Queue
 
-	constructor(
-		private readonly configService: ConfigService,
-		private readonly taskService: TaskService,
-	) {
+	constructor(private readonly configService: ConfigService) {
 		this.queue = new Queue('image-generation', {
 			connection: {
 				host: this.configService.getOrThrow<string>('REDIS_HOST'),
@@ -30,17 +25,10 @@ export class ImageQueueService implements OnModuleDestroy {
 		})
 	}
 
-	async add(dto: CreateImageDto) {
-		const task = await this.taskService.create('image', dto)
-		await this.queue.add('generate', {
-			taskId: task.id,
-		})
-		this.logger.log(`图片任务已入队: ${task.id}`)
-
-		return {
-			taskId: task.id,
-			status: task.status,
-		}
+	async enqueue(taskId: string) {
+		// TODO: 生产环境改为 transactional outbox，避免数据库成功但 Redis 投递失败。
+		await this.queue.add('generate', { taskId }, { jobId: taskId })
+		this.logger.log(`图片任务已入队: ${taskId}`)
 	}
 
 	addPollTask(taskId: string) {

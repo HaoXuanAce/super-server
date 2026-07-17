@@ -1,14 +1,19 @@
-import { Body, Controller, Post } from '@nestjs/common'
-import type { CreateImageDto } from './dto/create-image.dto'
-import { ImageQueueService } from './image-queue.service'
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common'
+import type { AuthenticatedRequest } from '../auth/auth.types'
+import { JwtAuthGuard } from '../auth/jwt-auth.guard'
+import { CreateImageDto } from './dto/create-image.dto'
+import { ImageService } from './image.service'
 
 @Controller('images')
+@UseGuards(JwtAuthGuard)
 export class ImageController {
-	constructor(private readonly imageQueueService: ImageQueueService) {}
+	constructor(private readonly imageService: ImageService) {}
 
-	// 生成图片
 	@Post()
-	generate(@Body() dto: CreateImageDto) {
-		return this.imageQueueService.add(dto)
+	generate(
+		@Body() dto: CreateImageDto,
+		@Req() request: AuthenticatedRequest,
+	) {
+		return this.imageService.submit(request.user.id, dto)
 	}
 }

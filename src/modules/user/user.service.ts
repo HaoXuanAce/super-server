@@ -1,22 +1,12 @@
 import { ConflictException, Injectable } from '@nestjs/common'
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm'
+import type {
+	CreateUserInput,
+	UserProfile,
+} from 'src/common/interface/user.interface'
 import { DataSource, Repository } from 'typeorm'
 import { CanvasEntity } from '../canvas/entities/canvas.entity'
 import { UserEntity } from './entities/user.entity'
-
-export interface CreateUserInput {
-	email?: string
-	phone?: string
-	passwordHash?: string
-}
-
-export interface UserProfile {
-	id: string
-	email: string | null
-	phone: string | null
-	balance: string
-	createdAt: Date
-}
 
 @Injectable()
 export class UserService {

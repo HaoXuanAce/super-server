@@ -7,12 +7,8 @@ import {
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createHash, randomInt, timingSafeEqual } from 'node:crypto'
+import type { PhoneCodeRecord } from 'src/common/interface/phone-code.interface'
 import { RedisService } from '../../core/redis/redis.service'
-
-interface PhoneCodeRecord {
-	hash: string
-	attempts: number
-}
 
 @Injectable()
 export class PhoneCodeService {
@@ -78,7 +74,9 @@ export class PhoneCodeService {
 
 	private hash(phone: string, code: string): string {
 		const secret = this.configService.getOrThrow<string>('JWT_SECRET')
-		return createHash('sha256').update(`${phone}:${code}:${secret}`).digest('hex')
+		return createHash('sha256')
+			.update(`${phone}:${code}:${secret}`)
+			.digest('hex')
 	}
 
 	private isHashEqual(left: string, right: string): boolean {

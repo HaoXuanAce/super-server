@@ -5,18 +5,14 @@ import {
 } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
+import type { AuthResult } from 'src/common/interface/auth.interface'
+import type { UserProfile } from 'src/common/interface/user.interface'
 import { UserEntity } from '../user/entities/user.entity'
-import { UserProfile, UserService } from '../user/user.service'
+import { UserService } from '../user/user.service'
 import { PasswordLoginDto } from './dto/password-login.dto'
 import { PhoneLoginDto } from './dto/phone-login.dto'
 import { RegisterDto } from './dto/register.dto'
 import { PhoneCodeService } from './phone-code.service'
-
-export interface AuthResult {
-	accessToken: string
-	tokenType: 'Bearer'
-	user: UserProfile
-}
 
 @Injectable()
 export class AuthService {

@@ -1,8 +1,5 @@
 import { Injectable } from '@nestjs/common'
-
-export interface HelloResponse {
-	message: string
-}
+import type { HelloResponse } from './common/interface/app.interface'
 
 @Injectable()
 export class AppService {

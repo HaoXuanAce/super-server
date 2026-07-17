@@ -6,8 +6,11 @@ import {
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Worker } from 'bullmq'
+import type {
+	ImageProviderName,
+	NormalizedImageRequest,
+} from 'src/common/interface/image.interface'
 import { TaskService } from 'src/modules/task/task.service'
-import type { CreateImageDto } from '../dto/create-image.dto'
 import { ImageQueueService } from '../image-queue.service'
 import { ImageService } from '../image.service'
 
@@ -73,11 +76,9 @@ export class ImageGenerationProcessor implements OnModuleInit, OnModuleDestroy {
 
 			return await this.generate(taskId)
 		} catch (error) {
-			await this.taskService.update(taskId, {
-				status: 'failed',
-				errorMessage:
-					error instanceof Error ? error.message : '图片任务执行失败',
-			})
+			const errorMessage =
+				error instanceof Error ? error.message : '图片任务执行失败'
+			await this.imageService.failTaskAndRefund(taskId, errorMessage)
 			throw error
 		}
 	}
@@ -87,11 +88,11 @@ export class ImageGenerationProcessor implements OnModuleInit, OnModuleDestroy {
 		await this.taskService.update(taskId, { status: 'processing' })
 
 		const result = await this.imageService.create(
-			task.input as CreateImageDto,
+			task.input as NormalizedImageRequest,
 		)
-		if ('taskId' in result) {
+		if (result.status === 'processing' && result.providerTaskId) {
 			await this.taskService.update(taskId, {
-				providerTaskId: result.taskId,
+				providerTaskId: result.providerTaskId,
 			})
 			await this.imageQueueService.addPollTask(taskId)
 			return result
@@ -99,21 +100,28 @@ export class ImageGenerationProcessor implements OnModuleInit, OnModuleDestroy {
 
 		await this.taskService.update(taskId, {
 			status: 'completed',
-			result,
+			result: result.result ?? result,
 		})
 		return result
 	}
 
 	private async poll(taskId: string) {
 		const task = await this.taskService.find(taskId)
-		const result = await this.imageService.pollTask(task.providerTaskId!)
+		if (!task.provider || !task.providerTaskId) {
+			throw new Error('图片任务缺少 provider 或 providerTaskId')
+		}
+
+		const result = await this.imageService.pollTask(
+			task.provider as ImageProviderName,
+			task.providerTaskId,
+		)
 
 		if (result.status === 'failed') {
-			await this.taskService.update(taskId, {
-				status: 'failed',
-				errorMessage: '图片生成失败',
+			await this.imageService.failTaskAndRefund(
+				taskId,
+				'图片供应商返回生成失败',
 				result,
-			})
+			)
 			this.logger.error(`图片任务失败: ${taskId}`)
 			return result
 		}
