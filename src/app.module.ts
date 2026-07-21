@@ -15,6 +15,7 @@ import { ChatModule } from './modules/chat/chat.module'
 import { HotImageModule } from './modules/hot-image/hot-image.module'
 import { ImageModule } from './modules/image/image.module'
 import { OssModule } from './modules/oss/oss.module'
+import { PromptLibraryModule } from './modules/prompt-library/prompt-library.module'
 
 @Module({
 	imports: [
@@ -31,6 +32,7 @@ import { OssModule } from './modules/oss/oss.module'
 		ImageModule,
 		CanvasModule,
 		HotImageModule,
+		PromptLibraryModule,
 		OssModule,
 	],
 	controllers: [AppController],
