@@ -8,6 +8,12 @@ async function bootstrap() {
 		bufferLogs: true,
 	})
 	app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER))
+	app.enableCors({
+		origin: (
+			process.env.CORS_ORIGINS ??
+			'http://localhost:5173,http://127.0.0.1:5173'
+		).split(','),
+	})
 	app.useGlobalPipes(
 		new ValidationPipe({
 			transform: true,

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core'
+import { APP_FILTER, APP_INTERCEPTOR, RouterModule } from '@nestjs/core'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'
@@ -16,6 +16,8 @@ import { HotImageModule } from './modules/hot-image/hot-image.module'
 import { ImageModule } from './modules/image/image.module'
 import { OssModule } from './modules/oss/oss.module'
 import { PromptLibraryModule } from './modules/prompt-library/prompt-library.module'
+import { WxModule } from './modules/wx/wx.module'
+import { WX_ROUTES } from './modules/wx/wx.routes'
 
 @Module({
 	imports: [
@@ -34,6 +36,8 @@ import { PromptLibraryModule } from './modules/prompt-library/prompt-library.mod
 		HotImageModule,
 		PromptLibraryModule,
 		OssModule,
+		WxModule,
+		RouterModule.register(WX_ROUTES),
 	],
 	controllers: [AppController],
 	providers: [
