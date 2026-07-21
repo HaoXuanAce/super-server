@@ -86,11 +86,7 @@ export class WxTemplateService {
 		)
 	}
 
-	async update(
-		userId: string,
-		templateId: string,
-		dto: UpdateWxTemplateDto,
-	) {
+	async update(userId: string, templateId: string, dto: UpdateWxTemplateDto) {
 		if (!Object.values(dto).some((value) => value !== undefined)) {
 			throw new BadRequestException('至少需要提交一个模板修改项')
 		}

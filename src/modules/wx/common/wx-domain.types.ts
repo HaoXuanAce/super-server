@@ -6,8 +6,7 @@ import type {
 
 export type WxJsonContent = Record<string, unknown>
 
-export type WxQuestionnaireStatus =
-	(typeof WX_QUESTIONNAIRE_STATUSES)[number]
+export type WxQuestionnaireStatus = (typeof WX_QUESTIONNAIRE_STATUSES)[number]
 
 export type WxShareType = (typeof WX_SHARE_TYPES)[number]
 

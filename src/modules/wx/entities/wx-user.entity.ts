@@ -29,7 +29,12 @@ export class WxUserEntity {
 	@Column({ type: 'varchar', length: 100, nullable: true })
 	nickname!: string | null
 
-	@Column({ name: 'avatar_url', type: 'varchar', length: 2048, nullable: true })
+	@Column({
+		name: 'avatar_url',
+		type: 'varchar',
+		length: 2048,
+		nullable: true,
+	})
 	avatarUrl!: string | null
 
 	@Column({

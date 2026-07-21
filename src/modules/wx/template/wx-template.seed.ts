@@ -76,7 +76,12 @@ const SYSTEM_TEMPLATES = [
 					type: 'single',
 					title: '理想周末从几点开始？',
 					required: true,
-					options: ['早起出门', '睡到自然醒', '午后再安排', '没有计划'],
+					options: [
+						'早起出门',
+						'睡到自然醒',
+						'午后再安排',
+						'没有计划',
+					],
 				},
 				{
 					id: 'weekend-2',
@@ -103,13 +108,15 @@ export class WxTemplateSeedService implements OnApplicationBootstrap {
 			.createQueryBuilder()
 			.insert()
 			.into(WxTemplateEntity)
-			.values(SYSTEM_TEMPLATES.map((template) => ({
-				...template,
-				ownerUserId: null,
-				coverUrl: null,
-				isSystem: true,
-				isPublic: true,
-			})))
+			.values(
+				SYSTEM_TEMPLATES.map((template) => ({
+					...template,
+					ownerUserId: null,
+					coverUrl: null,
+					isSystem: true,
+					isPublic: true,
+				})),
+			)
 			.orIgnore()
 			.execute()
 	}

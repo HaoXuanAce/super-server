@@ -36,10 +36,7 @@ export class WxShareController {
 	}
 
 	@Delete(':id')
-	revoke(
-		@Req() request: WxAuthenticatedRequest,
-		@Param('id') id: string,
-	) {
+	revoke(@Req() request: WxAuthenticatedRequest, @Param('id') id: string) {
 		return this.shareService.revoke(request.user.id, id)
 	}
 }

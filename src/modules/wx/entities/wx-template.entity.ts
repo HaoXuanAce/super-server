@@ -15,7 +15,12 @@ export class WxTemplateEntity {
 	@PrimaryGeneratedColumn('uuid')
 	id!: string
 
-	@Column({ name: 'owner_user_id', type: 'varchar', length: 36, nullable: true })
+	@Column({
+		name: 'owner_user_id',
+		type: 'varchar',
+		length: 36,
+		nullable: true,
+	})
 	ownerUserId!: string | null
 
 	@Column({ type: 'varchar', length: 191 })
@@ -24,7 +29,12 @@ export class WxTemplateEntity {
 	@Column({ type: 'text', nullable: true })
 	description!: string | null
 
-	@Column({ name: 'cover_url', type: 'varchar', length: 2048, nullable: true })
+	@Column({
+		name: 'cover_url',
+		type: 'varchar',
+		length: 2048,
+		nullable: true,
+	})
 	coverUrl!: string | null
 
 	@Column({ type: 'json' })

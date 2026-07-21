@@ -52,11 +52,7 @@ export class WxAnswerService {
 		return (await this.withRespondents([answer]))[0]
 	}
 
-	async createShare(
-		userId: string,
-		answerId: string,
-		dto: CreateWxShareDto,
-	) {
+	async createShare(userId: string, answerId: string, dto: CreateWxShareDto) {
 		await this.findSubmittedAnswer(userId, answerId)
 
 		return this.shareRepository.save(
@@ -82,9 +78,13 @@ export class WxAnswerService {
 	}
 
 	private async withRespondents(answers: WxAnswerEntity[]) {
-		const respondentIds = [...new Set(answers.map((item) => item.respondentUserId))]
+		const respondentIds = [
+			...new Set(answers.map((item) => item.respondentUserId)),
+		]
 		if (respondentIds.length === 0) return []
-		const users = await this.userRepository.findBy({ id: In(respondentIds) })
+		const users = await this.userRepository.findBy({
+			id: In(respondentIds),
+		})
 		const userMap = new Map(users.map((user) => [user.id, user]))
 
 		return answers.map((answer) => {

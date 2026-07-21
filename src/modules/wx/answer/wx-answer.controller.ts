@@ -28,10 +28,7 @@ export class WxAnswerController {
 	}
 
 	@Get(':id')
-	findOne(
-		@Req() request: WxAuthenticatedRequest,
-		@Param('id') id: string,
-	) {
+	findOne(@Req() request: WxAuthenticatedRequest, @Param('id') id: string) {
 		return this.answerService.findOne(request.user.id, id)
 	}
 

@@ -31,10 +31,7 @@ export class WxTemplateController {
 	}
 
 	@Get(':id')
-	findOne(
-		@Req() request: WxAuthenticatedRequest,
-		@Param('id') id: string,
-	) {
+	findOne(@Req() request: WxAuthenticatedRequest, @Param('id') id: string) {
 		return this.templateService.findOne(request.user.id, id)
 	}
 
@@ -56,10 +53,7 @@ export class WxTemplateController {
 	}
 
 	@Delete(':id')
-	remove(
-		@Req() request: WxAuthenticatedRequest,
-		@Param('id') id: string,
-	) {
+	remove(@Req() request: WxAuthenticatedRequest, @Param('id') id: string) {
 		return this.templateService.remove(request.user.id, id)
 	}
 }
