@@ -4,6 +4,7 @@ import {
 	Delete,
 	Get,
 	Param,
+	ParseIntPipe,
 	Put,
 	Post,
 	Query,
@@ -37,7 +38,7 @@ export class WxQuestionnaireController {
 	@Get(':id')
 	findOne(
 		@Req() request: WxAuthenticatedRequest,
-		@Param('id') id: string,
+		@Param('id', ParseIntPipe) id: number,
 	) {
 		return this.questionnaireService.findOne(request.user.id, id)
 	}
@@ -53,7 +54,7 @@ export class WxQuestionnaireController {
 	@Put(':id')
 	update(
 		@Req() request: WxAuthenticatedRequest,
-		@Param('id') id: string,
+		@Param('id', ParseIntPipe) id: number,
 		@Body() dto: UpdateWxQuestionnaireDto,
 	) {
 		return this.questionnaireService.update(request.user.id, id, dto)
@@ -62,7 +63,7 @@ export class WxQuestionnaireController {
 	@Delete(':id')
 	remove(
 		@Req() request: WxAuthenticatedRequest,
-		@Param('id') id: string,
+		@Param('id', ParseIntPipe) id: number,
 	) {
 		return this.questionnaireService.remove(request.user.id, id)
 	}
@@ -70,7 +71,7 @@ export class WxQuestionnaireController {
 	@Post(':id/save-as-template')
 	saveAsTemplate(
 		@Req() request: WxAuthenticatedRequest,
-		@Param('id') id: string,
+		@Param('id', ParseIntPipe) id: number,
 		@Body() dto: SaveAsWxTemplateDto,
 	) {
 		return this.questionnaireService.saveAsTemplate(
@@ -83,7 +84,7 @@ export class WxQuestionnaireController {
 	@Post(':id/shares')
 	createShare(
 		@Req() request: WxAuthenticatedRequest,
-		@Param('id') id: string,
+		@Param('id', ParseIntPipe) id: number,
 		@Body() dto: CreateWxShareDto,
 	) {
 		return this.questionnaireService.createShare(

@@ -3,6 +3,7 @@ import {
 	Controller,
 	Get,
 	Param,
+	ParseIntPipe,
 	Post,
 	Query,
 	Req,
@@ -28,14 +29,17 @@ export class WxAnswerController {
 	}
 
 	@Get(':id')
-	findOne(@Req() request: WxAuthenticatedRequest, @Param('id') id: string) {
+	findOne(
+		@Req() request: WxAuthenticatedRequest,
+		@Param('id', ParseIntPipe) id: number,
+	) {
 		return this.answerService.findOne(request.user.id, id)
 	}
 
 	@Post(':id/shares')
 	createShare(
 		@Req() request: WxAuthenticatedRequest,
-		@Param('id') id: string,
+		@Param('id', ParseIntPipe) id: number,
 		@Body() dto: CreateWxShareDto,
 	) {
 		return this.answerService.createShare(request.user.id, id, dto)

@@ -7,21 +7,44 @@ import {
 	PrimaryGeneratedColumn,
 	UpdateDateColumn,
 } from 'typeorm'
-import type { WxJsonContent } from '../common/wx-domain.types'
+import type {
+	WxJsonContent,
+	WxTemplateCategory,
+} from '../common/wx-domain.types'
+import { WX_TEMPLATE_CATEGORIES } from '../wx.constants'
 
 @Entity('wx_questionnaire_template')
 @Index(['ownerUserId', 'createdAt'])
+@Index(['ownerUserId', 'publishedAt'])
+@Index(['isPublic', 'category', 'heat', 'publishedAt'])
 export class WxTemplateEntity {
-	@PrimaryGeneratedColumn('uuid')
-	id!: string
+	@PrimaryGeneratedColumn({ type: 'int', unsigned: true })
+	id!: number
 
 	@Column({
 		name: 'owner_user_id',
-		type: 'varchar',
-		length: 36,
+		type: 'int',
+		unsigned: true,
 		nullable: true,
 	})
-	ownerUserId!: string | null
+	ownerUserId!: number | null
+
+	@Column({
+		name: 'preset_key',
+		type: 'varchar',
+		length: 64,
+		nullable: true,
+		unique: true,
+	})
+	presetKey!: string | null
+
+	@Column({
+		name: 'source_template_id',
+		type: 'int',
+		unsigned: true,
+		nullable: true,
+	})
+	sourceTemplateId!: number | null
 
 	@Column({ type: 'varchar', length: 191 })
 	name!: string
@@ -40,11 +63,24 @@ export class WxTemplateEntity {
 	@Column({ type: 'json' })
 	content!: WxJsonContent
 
+	@Column({
+		type: 'enum',
+		enum: WX_TEMPLATE_CATEGORIES,
+		nullable: true,
+	})
+	category!: WxTemplateCategory | null
+
 	@Column({ name: 'is_system', type: 'boolean', default: false })
 	isSystem!: boolean
 
 	@Column({ name: 'is_public', type: 'boolean', default: false })
 	isPublic!: boolean
+
+	@Column({ name: 'published_at', type: 'datetime', nullable: true })
+	publishedAt!: Date | null
+
+	@Column({ type: 'int', unsigned: true, default: 0 })
+	heat!: number
 
 	@CreateDateColumn({ name: 'created_at' })
 	createdAt!: Date

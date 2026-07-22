@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { In, Repository } from 'typeorm'
+import { In, IsNull, MoreThan, Repository } from 'typeorm'
 import { createWxPageResult } from '../common/wx-pagination.util'
 import {
 	createWxShareExpiry,
@@ -23,7 +23,7 @@ export class WxAnswerService {
 		private readonly userRepository: Repository<WxUserEntity>,
 	) {}
 
-	async findMine(userId: string, query: QueryWxAnswersDto) {
+	async findMine(userId: number, query: QueryWxAnswersDto) {
 		const [items, total] = await this.answerRepository.findAndCount({
 			where:
 				query.scope === 'received'
@@ -34,14 +34,14 @@ export class WxAnswerService {
 			take: query.pageSize,
 		})
 		return createWxPageResult(
-			await this.withRespondents(items),
+			await this.withRespondents(items, userId),
 			total,
 			query.page,
 			query.pageSize,
 		)
 	}
 
-	async findOne(userId: string, answerId: string) {
+	async findOne(userId: number, answerId: number) {
 		const answer = await this.answerRepository.findOne({
 			where: [
 				{ id: answerId, respondentUserId: userId },
@@ -49,11 +49,31 @@ export class WxAnswerService {
 			],
 		})
 		if (!answer) throw new NotFoundException('答卷不存在或无权访问')
-		return (await this.withRespondents([answer]))[0]
+		return (await this.withRespondents([answer], userId))[0]
 	}
 
-	async createShare(userId: string, answerId: string, dto: CreateWxShareDto) {
+	async createShare(userId: number, answerId: number, dto: CreateWxShareDto) {
 		await this.findSubmittedAnswer(userId, answerId)
+		const existingShare = await this.shareRepository.findOne({
+			where: [
+				{
+					type: 'answer',
+					creatorUserId: userId,
+					answerId,
+					revokedAt: IsNull(),
+					expiresAt: IsNull(),
+				},
+				{
+					type: 'answer',
+					creatorUserId: userId,
+					answerId,
+					revokedAt: IsNull(),
+					expiresAt: MoreThan(new Date()),
+				},
+			],
+			order: { createdAt: 'DESC' },
+		})
+		if (existingShare) return existingShare
 
 		return this.shareRepository.save(
 			this.shareRepository.create({
@@ -68,7 +88,7 @@ export class WxAnswerService {
 		)
 	}
 
-	private async findSubmittedAnswer(userId: string, answerId: string) {
+	private async findSubmittedAnswer(userId: number, answerId: number) {
 		const answer = await this.answerRepository.findOneBy({
 			id: answerId,
 			respondentUserId: userId,
@@ -77,7 +97,10 @@ export class WxAnswerService {
 		return answer
 	}
 
-	private async withRespondents(answers: WxAnswerEntity[]) {
+	private async withRespondents(
+		answers: WxAnswerEntity[],
+		viewerUserId: number,
+	) {
 		const respondentIds = [
 			...new Set(answers.map((item) => item.respondentUserId)),
 		]
@@ -91,6 +114,7 @@ export class WxAnswerService {
 			const respondent = userMap.get(answer.respondentUserId)
 			return {
 				...answer,
+				canShare: answer.respondentUserId === viewerUserId,
 				respondent: respondent
 					? {
 							id: respondent.id,

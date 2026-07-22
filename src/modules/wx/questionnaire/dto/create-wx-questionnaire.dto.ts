@@ -1,17 +1,21 @@
+import { Type } from 'class-transformer'
 import {
+	IsInt,
 	IsNotEmpty,
 	IsObject,
 	IsOptional,
 	IsString,
-	IsUUID,
 	MaxLength,
+	Min,
 } from 'class-validator'
 import type { WxJsonContent } from '../../common/wx-domain.types'
 
 export class CreateWxQuestionnaireDto {
 	@IsOptional()
-	@IsUUID()
-	sourceTemplateId?: string
+	@Type(() => Number)
+	@IsInt()
+	@Min(1)
+	sourceTemplateId?: number
 
 	@IsOptional()
 	@IsString()

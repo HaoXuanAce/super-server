@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Brackets, Repository } from 'typeorm'
+import { cloneWxJsonContent } from '../common/wx-json.util'
 import { createWxPageResult } from '../common/wx-pagination.util'
 import {
 	createWxShareExpiry,
@@ -33,7 +34,7 @@ export class WxQuestionnaireService {
 		private readonly shareRepository: Repository<WxShareEntity>,
 	) {}
 
-	async findAll(userId: string, query: QueryWxQuestionnairesDto) {
+	async findAll(userId: number, query: QueryWxQuestionnairesDto) {
 		const where = query.status
 			? { ownerUserId: userId, status: query.status }
 			: { ownerUserId: userId }
@@ -56,7 +57,7 @@ export class WxQuestionnaireService {
 				questionnaireIds: items.map((item) => item.id),
 			})
 			.groupBy('answer.questionnaireId')
-			.getRawMany<{ questionnaireId: string; answerCount: string }>()
+			.getRawMany<{ questionnaireId: number; answerCount: string }>()
 		const answerCountMap = new Map(
 			answerCounts.map((item) => [
 				item.questionnaireId,
@@ -75,16 +76,18 @@ export class WxQuestionnaireService {
 		)
 	}
 
-	findOne(userId: string, questionnaireId: string) {
+	findOne(userId: number, questionnaireId: number) {
 		return this.findOwnedQuestionnaire(userId, questionnaireId)
 	}
 
-	async create(userId: string, dto: CreateWxQuestionnaireDto) {
+	async create(userId: number, dto: CreateWxQuestionnaireDto) {
 		const template = dto.sourceTemplateId
 			? await this.findAccessibleTemplate(userId, dto.sourceTemplateId)
 			: null
 		const title = dto.title?.trim() || template?.name
-		const content = dto.content ?? template?.content
+		const content =
+			dto.content ??
+			(template ? cloneWxJsonContent(template.content) : undefined)
 
 		if (!title || !content) {
 			throw new BadRequestException(
@@ -92,25 +95,39 @@ export class WxQuestionnaireService {
 			)
 		}
 
-		return this.questionnaireRepository.save(
-			this.questionnaireRepository.create({
-				ownerUserId: userId,
-				sourceTemplateId: template?.id ?? null,
-				title,
-				description:
-					dto.description !== undefined
-						? dto.description?.trim() || null
-						: (template?.description ?? null),
-				content,
-				status: 'draft',
-				publishedAt: null,
-			}),
+		return this.questionnaireRepository.manager.transaction(
+			async (manager) => {
+				const questionnaireRepository =
+					manager.getRepository(WxQuestionnaireEntity)
+				const questionnaire = await questionnaireRepository.save(
+					questionnaireRepository.create({
+						ownerUserId: userId,
+						sourceTemplateId: template?.id ?? null,
+						title,
+						description:
+							dto.description !== undefined
+								? dto.description?.trim() || null
+								: (template?.description ?? null),
+						content,
+						status: 'draft',
+						publishedAt: null,
+					}),
+				)
+
+				if (template?.isPublic) {
+					await manager
+						.getRepository(WxTemplateEntity)
+						.increment({ id: template.id }, 'heat', 1)
+				}
+
+				return questionnaire
+			},
 		)
 	}
 
 	async update(
-		userId: string,
-		questionnaireId: string,
+		userId: number,
+		questionnaireId: number,
 		dto: UpdateWxQuestionnaireDto,
 	) {
 		if (!Object.values(dto).some((value) => value !== undefined)) {
@@ -134,7 +151,7 @@ export class WxQuestionnaireService {
 		return this.questionnaireRepository.save(questionnaire)
 	}
 
-	async remove(userId: string, questionnaireId: string) {
+	async remove(userId: number, questionnaireId: number) {
 		const questionnaire = await this.findOwnedQuestionnaire(
 			userId,
 			questionnaireId,
@@ -148,8 +165,8 @@ export class WxQuestionnaireService {
 	}
 
 	async saveAsTemplate(
-		userId: string,
-		questionnaireId: string,
+		userId: number,
+		questionnaireId: number,
 		dto: SaveAsWxTemplateDto,
 	) {
 		const questionnaire = await this.findOwnedQuestionnaire(
@@ -160,22 +177,27 @@ export class WxQuestionnaireService {
 		return this.templateRepository.save(
 			this.templateRepository.create({
 				ownerUserId: userId,
+				presetKey: null,
+				sourceTemplateId: null,
 				name: dto.name?.trim() || questionnaire.title,
 				description:
 					dto.description !== undefined
 						? dto.description?.trim() || null
 						: questionnaire.description,
 				coverUrl: dto.coverUrl ?? null,
-				content: questionnaire.content,
+				content: cloneWxJsonContent(questionnaire.content),
+				category: null,
 				isSystem: false,
 				isPublic: false,
+				publishedAt: null,
+				heat: 0,
 			}),
 		)
 	}
 
 	async createShare(
-		userId: string,
-		questionnaireId: string,
+		userId: number,
+		questionnaireId: number,
 		dto: CreateWxShareDto,
 	) {
 		const questionnaire = await this.findOwnedQuestionnaire(
@@ -206,8 +228,8 @@ export class WxQuestionnaireService {
 	}
 
 	private async findOwnedQuestionnaire(
-		userId: string,
-		questionnaireId: string,
+		userId: number,
+		questionnaireId: number,
 	): Promise<WxQuestionnaireEntity> {
 		const questionnaire = await this.questionnaireRepository.findOneBy({
 			id: questionnaireId,
@@ -219,7 +241,7 @@ export class WxQuestionnaireService {
 		return questionnaire
 	}
 
-	private async findAccessibleTemplate(userId: string, templateId: string) {
+	private async findAccessibleTemplate(userId: number, templateId: number) {
 		const template = await this.templateRepository
 			.createQueryBuilder('template')
 			.where('template.id = :templateId', { templateId })

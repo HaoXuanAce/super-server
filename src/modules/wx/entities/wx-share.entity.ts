@@ -11,8 +11,8 @@ import { WX_SHARE_TYPES } from '../wx.constants'
 @Entity('wx_share')
 @Index(['creatorUserId', 'createdAt'])
 export class WxShareEntity {
-	@PrimaryGeneratedColumn('uuid')
-	id!: string
+	@PrimaryGeneratedColumn({ type: 'int', unsigned: true })
+	id!: number
 
 	@Column({ type: 'varchar', length: 64, unique: true })
 	token!: string
@@ -20,19 +20,24 @@ export class WxShareEntity {
 	@Column({ type: 'enum', enum: WX_SHARE_TYPES })
 	type!: WxShareType
 
-	@Column({ name: 'creator_user_id', type: 'varchar', length: 36 })
-	creatorUserId!: string
+	@Column({ name: 'creator_user_id', type: 'int', unsigned: true })
+	creatorUserId!: number
 
 	@Column({
 		name: 'questionnaire_id',
-		type: 'varchar',
-		length: 36,
+		type: 'int',
+		unsigned: true,
 		nullable: true,
 	})
-	questionnaireId!: string | null
+	questionnaireId!: number | null
 
-	@Column({ name: 'answer_id', type: 'varchar', length: 36, nullable: true })
-	answerId!: string | null
+	@Column({
+		name: 'answer_id',
+		type: 'int',
+		unsigned: true,
+		nullable: true,
+	})
+	answerId!: number | null
 
 	@Column({ name: 'expires_at', type: 'datetime', nullable: true })
 	expiresAt!: Date | null

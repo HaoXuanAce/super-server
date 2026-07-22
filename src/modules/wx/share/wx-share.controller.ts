@@ -4,6 +4,7 @@ import {
 	Delete,
 	Get,
 	Param,
+	ParseIntPipe,
 	Post,
 	Req,
 	UseGuards,
@@ -20,10 +21,9 @@ export class WxShareController {
 
 	@Get(':token')
 	findByToken(
-		@Req() request: WxAuthenticatedRequest,
 		@Param('token') token: string,
 	) {
-		return this.shareService.findByToken(request.user.id, token)
+		return this.shareService.findByToken(token)
 	}
 
 	@Post(':token/answers')
@@ -36,7 +36,10 @@ export class WxShareController {
 	}
 
 	@Delete(':id')
-	revoke(@Req() request: WxAuthenticatedRequest, @Param('id') id: string) {
+	revoke(
+		@Req() request: WxAuthenticatedRequest,
+		@Param('id', ParseIntPipe) id: number,
+	) {
 		return this.shareService.revoke(request.user.id, id)
 	}
 }

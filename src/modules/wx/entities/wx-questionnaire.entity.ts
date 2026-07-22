@@ -16,19 +16,19 @@ import { WX_QUESTIONNAIRE_STATUSES } from '../wx.constants'
 @Entity('wx_questionnaire')
 @Index(['ownerUserId', 'createdAt'])
 export class WxQuestionnaireEntity {
-	@PrimaryGeneratedColumn('uuid')
-	id!: string
+	@PrimaryGeneratedColumn({ type: 'int', unsigned: true })
+	id!: number
 
-	@Column({ name: 'owner_user_id', type: 'varchar', length: 36 })
-	ownerUserId!: string
+	@Column({ name: 'owner_user_id', type: 'int', unsigned: true })
+	ownerUserId!: number
 
 	@Column({
 		name: 'source_template_id',
-		type: 'varchar',
-		length: 36,
+		type: 'int',
+		unsigned: true,
 		nullable: true,
 	})
-	sourceTemplateId!: string | null
+	sourceTemplateId!: number | null
 
 	@Column({ type: 'varchar', length: 191 })
 	title!: string

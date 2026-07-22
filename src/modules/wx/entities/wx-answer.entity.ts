@@ -12,21 +12,21 @@ import type { WxJsonContent } from '../common/wx-domain.types'
 @Index(['respondentUserId', 'submittedAt'])
 @Index(['questionnaireOwnerUserId', 'submittedAt'])
 export class WxAnswerEntity {
-	@PrimaryGeneratedColumn('uuid')
-	id!: string
+	@PrimaryGeneratedColumn({ type: 'int', unsigned: true })
+	id!: number
 
-	@Column({ name: 'questionnaire_id', type: 'varchar', length: 36 })
-	questionnaireId!: string
+	@Column({ name: 'questionnaire_id', type: 'int', unsigned: true })
+	questionnaireId!: number
 
-	@Column({ name: 'respondent_user_id', type: 'varchar', length: 36 })
-	respondentUserId!: string
+	@Column({ name: 'respondent_user_id', type: 'int', unsigned: true })
+	respondentUserId!: number
 
 	@Column({
 		name: 'questionnaire_owner_user_id',
-		type: 'varchar',
-		length: 36,
+		type: 'int',
+		unsigned: true,
 	})
-	questionnaireOwnerUserId!: string
+	questionnaireOwnerUserId!: number
 
 	@Column({ name: 'questionnaire_snapshot', type: 'json' })
 	questionnaireSnapshot!: WxJsonContent

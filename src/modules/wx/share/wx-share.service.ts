@@ -1,7 +1,6 @@
 import {
 	BadRequestException,
 	ConflictException,
-	ForbiddenException,
 	GoneException,
 	Injectable,
 	NotFoundException,
@@ -27,17 +26,17 @@ export class WxShareService {
 		private readonly userRepository: Repository<WxUserEntity>,
 	) {}
 
-	async findByToken(userId: string, token: string) {
+	async findByToken(token: string) {
 		const share = await this.findActiveShare(token)
 		if (share.type === 'questionnaire') {
 			return this.getSharedQuestionnaire(share)
 		}
 
-		return this.getSharedAnswer(userId, share)
+		return this.getSharedAnswer(share)
 	}
 
 	async submitAnswer(
-		userId: string,
+		userId: number,
 		token: string,
 		dto: SubmitWxAnswerDto,
 	) {
@@ -81,7 +80,7 @@ export class WxShareService {
 		}
 	}
 
-	async revoke(userId: string, shareId: string) {
+	async revoke(userId: number, shareId: number) {
 		const share = await this.shareRepository.findOneBy({
 			id: shareId,
 			creatorUserId: userId,
@@ -122,16 +121,10 @@ export class WxShareService {
 		}
 	}
 
-	private async getSharedAnswer(userId: string, share: WxShareEntity) {
+	private async getSharedAnswer(share: WxShareEntity) {
 		if (!share.answerId) throw new GoneException('分享的答卷已失效')
 		const answer = await this.answerRepository.findOneBy({ id: share.answerId })
 		if (!answer) throw new GoneException('答卷不存在或已失效')
-		if (
-			userId !== answer.questionnaireOwnerUserId &&
-			userId !== answer.respondentUserId
-		) {
-			throw new ForbiddenException('只有出题者和答题者可以查看该答卷')
-		}
 		const respondent = await this.userRepository.findOneBy({
 			id: answer.respondentUserId,
 		})

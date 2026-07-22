@@ -1,0 +1,123 @@
+import type { WxSystemTemplatePreset } from './wx-template-preset.types'
+
+export const FIRST_DATE_TEMPLATE_PRESET = {
+	key: 'first-date',
+	name: '刚认识就想问你的问题',
+	description:
+		'不查户口，也不尬聊，用有画面感的问题快速看见一个人的性格、情绪和生活方式。',
+	coverUrl: null,
+	category: 'first_meeting',
+	content: {
+		questions: [
+			{
+				id: 'first-meeting-1',
+				type: 'text',
+				title: '如果今天认识你的人只能记住你一个特点，你希望是什么？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'first-meeting-2',
+				type: 'text',
+				title: '你最近一次笑到停不下来，是因为什么？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'first-meeting-3',
+				type: 'single',
+				title: '突然多出一个完全自由的晚上，你最可能怎么过？',
+				required: true,
+				options: ['找朋友立刻出门', '一个人在家充电', '去没去过的地方', '临时加班或学习', '睡觉就是最好的安排'],
+			},
+			{
+				id: 'first-meeting-4',
+				type: 'text',
+				title: '别人对你的第一印象，通常和真实的你差在哪里？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'first-meeting-5',
+				type: 'text',
+				title: '你做过最不符合自己外表的一件事是什么？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'first-meeting-6',
+				type: 'single',
+				title: '聊天时对方很久没回消息，你通常会怎么想？',
+				required: true,
+				options: ['应该在忙，不多想', '担心自己说错了话', '也故意晚点回复', '直接问对方怎么了', '很快失去聊天兴趣'],
+			},
+			{
+				id: 'first-meeting-7',
+				type: 'text',
+				title: '什么样的玩笑会让你瞬间下头？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'first-meeting-8',
+				type: 'text',
+				title: '你最近一次真诚道歉是什么时候？当时发生了什么？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'first-meeting-9',
+				type: 'text',
+				title: '如果朋友用三个不全是优点的词形容你，他们会说什么？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'first-meeting-10',
+				type: 'single',
+				title: '遇到意见完全相反的人，你更容易怎么做？',
+				required: true,
+				options: ['认真听完再表达', '想办法说服对方', '避免争论换个话题', '看关系远近决定', '承认彼此不同就好'],
+			},
+			{
+				id: 'first-meeting-11',
+				type: 'text',
+				title: '有什么爱好你明知道别人可能不理解，却一直很喜欢？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'first-meeting-12',
+				type: 'text',
+				title: '现在的生活里，哪件事最消耗你，哪件事最治愈你？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'first-meeting-13',
+				type: 'text',
+				title: '如果明天不用考虑钱和责任，你最想去哪里、做什么？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'first-meeting-14',
+				type: 'text',
+				title: '你希望别人怎样靠近你，又最讨厌别人怎样自来熟？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'first-meeting-15',
+				type: 'text',
+				title: '问一个你真的想知道、但刚认识通常不好意思问的问题。',
+				required: true,
+				options: [],
+			},
+		],
+		settings: {
+			category: 'first_meeting',
+			estimatedMinutes: 12,
+		},
+	},
+} satisfies WxSystemTemplatePreset

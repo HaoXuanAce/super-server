@@ -1,0 +1,123 @@
+import type { WxSystemTemplatePreset } from './wx-template-preset.types'
+
+export const WEEKEND_TEMPLATE_PRESET = {
+	key: 'weekend',
+	name: '我们能不能成为真朋友',
+	description:
+		'从分享欲、边界感到借钱和低谷，看看你们适合做饭搭子、酒肉朋友还是长期挚友。',
+	coverUrl: null,
+	category: 'make_friends',
+	content: {
+		questions: [
+			{
+				id: 'make-friends-1',
+				type: 'text',
+				title: '你判断一个人“值得深交”的瞬间通常是什么？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'make-friends-2',
+				type: 'single',
+				title: '朋友连续三次临时取消约定，你最可能怎么做？',
+				required: true,
+				options: ['直接问清原因', '嘴上说没事但逐渐疏远', '再给一次机会', '只要理由合理就不介意'],
+			},
+			{
+				id: 'make-friends-3',
+				type: 'text',
+				title: '朋友做了一件你认为很不靠谱的事，你会当面指出还是先维护他？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'make-friends-4',
+				type: 'text',
+				title: '你能接受朋友消失多久不联系，再见面还像从前一样？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'make-friends-5',
+				type: 'single',
+				title: '朋友向你借一笔不算小的钱，你会怎么决定？',
+				required: true,
+				options: ['了解用途后再决定', '只借自己承受得起失去的金额', '关系再好也不借钱', '尽力满足，不好意思拒绝'],
+			},
+			{
+				id: 'make-friends-6',
+				type: 'text',
+				title: '你会不会嫉妒好朋友突然比你优秀很多？你会怎么消化这种情绪？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'make-friends-7',
+				type: 'multiple',
+				title: '朋友把秘密告诉你后，哪些情况你认为可以打破保密？',
+				required: true,
+				options: ['涉及生命安全', '涉及违法伤害他人', '为了阻止重大损失', '对方家人追问', '任何情况都不可以'],
+			},
+			{
+				id: 'make-friends-8',
+				type: 'text',
+				title: '当你情绪最差时，希望朋友陪你说话、给建议，还是安静地待着？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'make-friends-9',
+				type: 'text',
+				title: '朋友谈了一段你明显不看好的恋爱，你会提醒到什么程度？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'make-friends-10',
+				type: 'single',
+				title: '你最介意朋友越过哪条边界？',
+				required: true,
+				options: ['擅自翻看隐私', '公开拿短处开玩笑', '干涉感情和家庭', '借钱拖欠不还', '只在需要帮忙时出现'],
+			},
+			{
+				id: 'make-friends-11',
+				type: 'text',
+				title: '如果我们吵架了，你希望当天说开，冷静几天，还是等谁先低头？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'make-friends-12',
+				type: 'text',
+				title: '如果别人都在说我的坏话，但我不在场，你会做什么？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'make-friends-13',
+				type: 'text',
+				title: '你最希望朋友记住你的哪一种脆弱，而不是哪一种优点？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'make-friends-14',
+				type: 'text',
+				title: '哪件看起来很小的事，会让你决定不再和一个人深交？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'make-friends-15',
+				type: 'text',
+				title: '十年后我们生活完全不同，你觉得靠什么还能维持这段友谊？',
+				required: true,
+				options: [],
+			},
+		],
+		settings: {
+			category: 'make_friends',
+			estimatedMinutes: 12,
+		},
+	},
+} satisfies WxSystemTemplatePreset

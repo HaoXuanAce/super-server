@@ -1,0 +1,123 @@
+import type { WxSystemTemplatePreset } from './wx-template-preset.types'
+
+export const ABSTRACT_BRAIN_HOLE_PRESET = {
+	key: 'abstract-brain-hole',
+	name: '脑洞离家出走测试',
+	description:
+		'没有标准答案，专门测试一个人的临场反应、精神状态和一本正经胡说八道的能力。',
+	coverUrl: null,
+	category: 'abstract',
+	content: {
+		questions: [
+			{
+				id: 'abstract-1',
+				type: 'single',
+				title: '你更愿意拥有一个会骂你的冰箱，还是一个会告密的马桶？',
+				required: true,
+				options: ['会骂人的冰箱', '会告密的马桶', '两个都要，让它们互相制衡'],
+			},
+			{
+				id: 'abstract-2',
+				type: 'text',
+				title: '你的大脑每天几点正式下班？下班以后是谁在替你做决定？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'abstract-3',
+				type: 'text',
+				title: '世界末日只剩十分钟，你发现外卖还有十一分钟到，你怎么办？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'abstract-4',
+				type: 'text',
+				title: '外星人绑架你，要求你表演一个地球人的才艺，你表演什么？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'abstract-5',
+				type: 'text',
+				title: '你穿越到古代，但手机还有 20% 的电，你第一件事做什么？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'abstract-6',
+				type: 'single',
+				title: '你获得了超能力，但每次发动前必须跳一遍广播体操，你愿意吗？',
+				required: true,
+				options: ['愿意，能力最重要', '不愿意，尊严最重要', '看是什么超能力', '先把广播体操练成绝招'],
+			},
+			{
+				id: 'abstract-7',
+				type: 'text',
+				title: '如果你家的宠物突然会说话，你最怕它向别人揭露你什么？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'abstract-8',
+				type: 'text',
+				title: '你被缩小成一厘米高，却正好掉进自己的外卖袋里，怎么自救？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'abstract-9',
+				type: 'text',
+				title: '如果你的影子突然提出辞职，它最可能给出什么理由？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'abstract-10',
+				type: 'single',
+				title: '一觉醒来，全世界的人说话都自带字幕，只有你的字幕会随机出错，你会？',
+				required: true,
+				options: ['从此闭嘴', '靠错误字幕成为网红', '随身带白板解释', '将错就错活出新人生'],
+			},
+			{
+				id: 'abstract-11',
+				type: 'text',
+				title: '阎王允许你下辈子投胎成一件日用品，你选什么，为什么？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'abstract-12',
+				type: 'text',
+				title: '如果蚊子每咬你一次都会往你账户转十元，你准备怎样安排这个夏天？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'abstract-13',
+				type: 'text',
+				title: '宇宙客服打电话说你的人生系统装错了版本，你要求补偿什么功能？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'abstract-14',
+				type: 'text',
+				title: '假如镜子里的你永远比现实慢三秒，你会拿它来做什么？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'abstract-15',
+				type: 'text',
+				title: '如果人生可以删除一种尴尬场景，但所有人都会知道你删过，你删什么？',
+				required: true,
+				options: [],
+			},
+		],
+		settings: {
+			category: 'abstract',
+			estimatedMinutes: 10,
+		},
+	},
+} satisfies WxSystemTemplatePreset

@@ -46,13 +46,13 @@ export class WxAuthService {
 		}
 	}
 
-	async getProfile(userId: string): Promise<WxUserProfile> {
+	async getProfile(userId: number): Promise<WxUserProfile> {
 		const user = await this.findActiveUser(userId)
 		return this.toProfile(user)
 	}
 
 	async updateProfile(
-		userId: string,
+		userId: number,
 		dto: UpdateWxProfileDto,
 	): Promise<WxUserProfile> {
 		const user = await this.findActiveUser(userId)
@@ -68,9 +68,12 @@ export class WxAuthService {
 				'https://api.weixin.qq.com/sns/jscode2session',
 				{
 					params: {
-						appid: this.configService.getOrThrow<string>('WX_APP_ID'),
-						secret:
-							this.configService.getOrThrow<string>('WX_APP_SECRET'),
+						appid: this.configService.getOrThrow<string>(
+							'WX_APP_ID',
+						),
+						secret: this.configService.getOrThrow<string>(
+							'WX_APP_SECRET',
+						),
 						js_code: code,
 						grant_type: 'authorization_code',
 					},
@@ -123,7 +126,7 @@ export class WxAuthService {
 		}
 	}
 
-	private async findActiveUser(userId: string): Promise<WxUserEntity> {
+	private async findActiveUser(userId: number): Promise<WxUserEntity> {
 		const user = await this.userRepository.findOneBy({
 			id: userId,
 			status: 'active',

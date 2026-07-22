@@ -1,0 +1,172 @@
+import type { WxSystemTemplatePreset } from './wx-template-preset.types'
+
+export const BEFORE_RELATIONSHIP_PRESET = {
+	key: 'before-relationship',
+	name: '确认关系前别回避这14问',
+	description:
+		'喜欢可以凭感觉，确认关系前最好把前任、忠诚边界、冲突方式、金钱和未来期待聊明白。',
+	coverUrl: null,
+	category: 'first_meeting',
+	content: {
+		questions: [
+			{
+				id: 'before-relationship-1',
+				type: 'single',
+				title: '你是真的喜欢眼前这个人，还是只是在这个阶段很想拥有一段关系？',
+				required: true,
+				options: [
+					'彼此排他并认真经营',
+					'进一步了解，但暂不承诺未来',
+					'以长期或结婚为目标',
+					'还没有清晰定义',
+				],
+			},
+			{
+				id: 'before-relationship-2',
+				type: 'single',
+				title: '恋爱后，你期待怎样的联系频率？',
+				required: true,
+				options: [
+					'每天保持联系',
+					'有事或想念时联系',
+					'每周固定联系几次',
+					'不喜欢固定要求',
+				],
+			},
+			{
+				id: 'before-relationship-3',
+				type: 'multiple',
+				title: '不发生身体接触的情况下，哪些行为在你看来也算背叛？',
+				required: true,
+				options: [
+					'不与他人发展暧昧关系',
+					'与前任保持清晰边界',
+					'重要异性社交主动说明',
+					'不隐瞒约会或亲密接触',
+					'双方共同约定即可',
+				],
+			},
+			{
+				id: 'before-relationship-4',
+				type: 'single',
+				title: '你是否愿意公开恋爱关系？',
+				required: true,
+				options: [
+					'确认后愿意公开',
+					'稳定一段时间后公开',
+					'只告诉亲友',
+					'不希望公开',
+				],
+			},
+			{
+				id: 'before-relationship-5',
+				type: 'single',
+				title: '发生矛盾后，你希望双方多久内开始沟通？',
+				required: true,
+				options: [
+					'当下沟通',
+					'当天内',
+					'一到两天内',
+					'等情绪完全过去再说',
+				],
+			},
+			{
+				id: 'before-relationship-6',
+				type: 'text',
+				title: '当你情绪低落时，希望伴侣怎样支持你？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'before-relationship-7',
+				type: 'single',
+				title: '约会和共同消费时，你更认可哪种方式？',
+				required: true,
+				options: [
+					'轮流承担',
+					'大致AA',
+					'根据收入共同承担',
+					'由一方主要承担',
+					'具体事情具体商量',
+				],
+			},
+			{
+				id: 'before-relationship-8',
+				type: 'multiple',
+				title: '你需要保留哪些个人空间？',
+				required: true,
+				options: [
+					'独处时间',
+					'朋友社交',
+					'个人兴趣',
+					'手机与账号隐私',
+					'独立财务空间',
+				],
+			},
+			{
+				id: 'before-relationship-9',
+				type: 'single',
+				title: '如果伴侣不愿意互查手机和密码，你认为这是边界感还是心里有鬼？',
+				required: true,
+				options: [
+					'未经允许不应该查看',
+					'双方同意时可以查看',
+					'恋人之间不应有隐私',
+					'需要结合具体情况讨论',
+				],
+			},
+			{
+				id: 'before-relationship-10',
+				type: 'single',
+				title: '你对亲密关系发展节奏的态度是什么？',
+				required: true,
+				options: [
+					'尊重双方意愿，逐步发展',
+					'确认关系后自然发展',
+					'希望慢一些',
+					'需要具体沟通',
+				],
+			},
+			{
+				id: 'before-relationship-11',
+				type: 'text',
+				title: '上一段关系为什么结束？如果不只怪对方，你认为自己的责任是什么？',
+				required: false,
+				options: [],
+			},
+			{
+				id: 'before-relationship-12',
+				type: 'single',
+				title: '如果未来需要异地，你愿意怎样面对？',
+				required: true,
+				options: [
+					'愿意共同制定结束异地的计划',
+					'可以接受长期异地',
+					'短期可以，长期不能接受',
+					'不考虑异地关系',
+				],
+			},
+			{
+				id: 'before-relationship-13',
+				type: 'text',
+				title: '你希望这段关系在未来一到三年发展成什么样？',
+				required: true,
+				options: [],
+			},
+			{
+				id: 'before-relationship-14',
+				type: 'text',
+				title: '你身上哪一个问题，可能会成为未来伴侣最受不了的地方？',
+				required: true,
+				options: [],
+			},
+		],
+		settings: {
+			category: 'before-relationship',
+			audience: 'women',
+			estimatedMinutes: 12,
+			disclaimer:
+				'答案没有标准对错，重点是确认双方是否能够尊重彼此的边界与期待。',
+		},
+	},
+} satisfies WxSystemTemplatePreset

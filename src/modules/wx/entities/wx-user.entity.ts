@@ -11,8 +11,8 @@ import { WX_USER_STATUSES } from '../wx.constants'
 
 @Entity('wx_user')
 export class WxUserEntity {
-	@PrimaryGeneratedColumn('uuid')
-	id!: string
+	@PrimaryGeneratedColumn({ type: 'int', unsigned: true })
+	id!: number
 
 	@Column({ name: 'open_id', type: 'varchar', length: 128, unique: true })
 	openId!: string

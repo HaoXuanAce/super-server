@@ -2,12 +2,12 @@ import type { Request } from 'express'
 import type { WxUserStatus } from '../common/wx-domain.types'
 
 export interface WxJwtPayload {
-	sub: string
+	sub: number
 	platform: 'wx'
 }
 
 export interface WxAuthenticatedUser {
-	id: string
+	id: number
 }
 
 export interface WxAuthenticatedRequest extends Request {
@@ -15,7 +15,7 @@ export interface WxAuthenticatedRequest extends Request {
 }
 
 export interface WxUserProfile {
-	id: string
+	id: number
 	nickname: string | null
 	avatarUrl: string | null
 	status: WxUserStatus
