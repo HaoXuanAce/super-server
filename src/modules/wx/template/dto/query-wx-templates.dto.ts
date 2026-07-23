@@ -3,18 +3,12 @@ import { WxPaginationDto } from '../../common/dto/wx-pagination.dto'
 import type { WxTemplateCategory } from '../../common/wx-domain.types'
 import { WX_TEMPLATE_CATEGORIES } from '../../wx.constants'
 
-const WX_TEMPLATE_SCOPES = [
-	'all',
-	'library',
-	'system',
-	'public',
-	'mine',
-] as const
+const WX_TEMPLATE_SCOPES = ['library', 'system', 'public'] as const
 
 export class QueryWxTemplatesDto extends WxPaginationDto {
 	@IsOptional()
 	@IsIn(WX_TEMPLATE_SCOPES)
-	scope: (typeof WX_TEMPLATE_SCOPES)[number] = 'all'
+	scope: (typeof WX_TEMPLATE_SCOPES)[number] = 'library'
 
 	@IsOptional()
 	@IsIn(WX_TEMPLATE_CATEGORIES)

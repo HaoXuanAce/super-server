@@ -15,8 +15,8 @@ import type { WxAuthenticatedRequest } from '../auth/wx-auth.types'
 import { WxJwtAuthGuard } from '../auth/wx-jwt-auth.guard'
 import { CreateWxShareDto } from '../share/dto/create-wx-share.dto'
 import { CreateWxQuestionnaireDto } from './dto/create-wx-questionnaire.dto'
+import { PublishWxQuestionnaireDto } from './dto/publish-wx-questionnaire.dto'
 import { QueryWxQuestionnairesDto } from './dto/query-wx-questionnaires.dto'
-import { SaveAsWxTemplateDto } from './dto/save-as-wx-template.dto'
 import { UpdateWxQuestionnaireDto } from './dto/update-wx-questionnaire.dto'
 import { WxQuestionnaireService } from './wx-questionnaire.service'
 
@@ -68,13 +68,13 @@ export class WxQuestionnaireController {
 		return this.questionnaireService.remove(request.user.id, id)
 	}
 
-	@Post(':id/save-as-template')
-	saveAsTemplate(
+	@Post(':id/publish-to-library')
+	publishToLibrary(
 		@Req() request: WxAuthenticatedRequest,
 		@Param('id', ParseIntPipe) id: number,
-		@Body() dto: SaveAsWxTemplateDto,
+		@Body() dto: PublishWxQuestionnaireDto,
 	) {
-		return this.questionnaireService.saveAsTemplate(
+		return this.questionnaireService.publishToLibrary(
 			request.user.id,
 			id,
 			dto,

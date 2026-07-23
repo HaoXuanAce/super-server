@@ -4,7 +4,7 @@ import {
 	NotFoundException,
 } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Brackets, Repository } from 'typeorm'
+import { Repository } from 'typeorm'
 import { cloneWxJsonContent } from '../common/wx-json.util'
 import { createWxPageResult } from '../common/wx-pagination.util'
 import {
@@ -16,9 +16,10 @@ import { WxQuestionnaireEntity } from '../entities/wx-questionnaire.entity'
 import { WxShareEntity } from '../entities/wx-share.entity'
 import { WxTemplateEntity } from '../entities/wx-template.entity'
 import type { CreateWxShareDto } from '../share/dto/create-wx-share.dto'
+import { WxTemplatePublishingService } from '../template/wx-template-publishing.service'
 import type { CreateWxQuestionnaireDto } from './dto/create-wx-questionnaire.dto'
+import type { PublishWxQuestionnaireDto } from './dto/publish-wx-questionnaire.dto'
 import type { QueryWxQuestionnairesDto } from './dto/query-wx-questionnaires.dto'
-import type { SaveAsWxTemplateDto } from './dto/save-as-wx-template.dto'
 import type { UpdateWxQuestionnaireDto } from './dto/update-wx-questionnaire.dto'
 
 @Injectable()
@@ -32,6 +33,7 @@ export class WxQuestionnaireService {
 		private readonly templateRepository: Repository<WxTemplateEntity>,
 		@InjectRepository(WxShareEntity)
 		private readonly shareRepository: Repository<WxShareEntity>,
+		private readonly templatePublishingService: WxTemplatePublishingService,
 	) {}
 
 	async findAll(userId: number, query: QueryWxQuestionnairesDto) {
@@ -82,7 +84,7 @@ export class WxQuestionnaireService {
 
 	async create(userId: number, dto: CreateWxQuestionnaireDto) {
 		const template = dto.sourceTemplateId
-			? await this.findAccessibleTemplate(userId, dto.sourceTemplateId)
+			? await this.findAccessibleTemplate(dto.sourceTemplateId)
 			: null
 		const title = dto.title?.trim() || template?.name
 		const content =
@@ -164,35 +166,23 @@ export class WxQuestionnaireService {
 		return { id: questionnaireId }
 	}
 
-	async saveAsTemplate(
+	async publishToLibrary(
 		userId: number,
 		questionnaireId: number,
-		dto: SaveAsWxTemplateDto,
+		dto: PublishWxQuestionnaireDto,
 	) {
 		const questionnaire = await this.findOwnedQuestionnaire(
 			userId,
 			questionnaireId,
 		)
 
-		return this.templateRepository.save(
-			this.templateRepository.create({
-				ownerUserId: userId,
-				presetKey: null,
-				sourceTemplateId: null,
-				name: dto.name?.trim() || questionnaire.title,
-				description:
-					dto.description !== undefined
-						? dto.description?.trim() || null
-						: questionnaire.description,
-				coverUrl: dto.coverUrl ?? null,
-				content: cloneWxJsonContent(questionnaire.content),
-				category: null,
-				isSystem: false,
-				isPublic: false,
-				publishedAt: null,
-				heat: 0,
-			}),
-		)
+		return this.templatePublishingService.publishSnapshot(userId, {
+			sourceTemplateId: questionnaire.sourceTemplateId,
+			name: questionnaire.title,
+			description: questionnaire.description,
+			content: questionnaire.content,
+			category: dto.category,
+		})
 	}
 
 	async createShare(
@@ -241,23 +231,12 @@ export class WxQuestionnaireService {
 		return questionnaire
 	}
 
-	private async findAccessibleTemplate(userId: number, templateId: number) {
+	private async findAccessibleTemplate(templateId: number) {
 		const template = await this.templateRepository
 			.createQueryBuilder('template')
 			.where('template.id = :templateId', { templateId })
 			.andWhere('template.deletedAt IS NULL')
-			.andWhere(
-				new Brackets((where) => {
-					where
-						.where('template.ownerUserId = :userId', { userId })
-						.orWhere('template.isSystem = :isSystem', {
-							isSystem: true,
-						})
-						.orWhere('template.isPublic = :isPublic', {
-							isPublic: true,
-						})
-				}),
-			)
+			.andWhere('template.isPublic = :isPublic', { isPublic: true })
 			.getOne()
 
 		if (!template) throw new NotFoundException('模板不存在或无权使用')

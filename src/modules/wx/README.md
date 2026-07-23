@@ -50,10 +50,10 @@ GET /api/wx/templates/categories
 - `marriage`：结婚题库
 - `men`：男生题库
 
-用户先创建私人题库，再将私人题库上传到公共题库：
+用户在“我的试卷”中选择分类，将试卷直接上传到题库广场：
 
 ```text
-POST /api/wx/templates/:id/publish
+POST /api/wx/questionnaires/:id/publish-to-library
 ```
 
 ```json
@@ -62,9 +62,9 @@ POST /api/wx/templates/:id/publish
 }
 ```
 
-上传时会深拷贝一条公开快照，私人原稿与公开题库互不影响。公开快照不能直接
-编辑；用户可以删除自己的公开快照将其撤下。每天最多上传 3 套，已经撤下的题库
-仍计入当天次数，避免通过删除绕过限制。
+上传时会从当前试卷深拷贝一条公开快照，原试卷后续编辑不会影响已经上传的版本。
+用户可以删除自己的公开快照将其撤下。每天最多上传 3 套，已经撤下的题库仍计入
+当天次数，避免通过删除绕过限制。
 
 查询当天剩余上传次数：
 
@@ -96,21 +96,19 @@ GET /api/wx/templates?scope=public
 }
 ```
 
-其他用户可以调用 `POST /api/wx/templates/:id/copy` 复制为私人题库，或者在创建
-问卷时直接传入公开题库的 `sourceTemplateId`。两种方式都使用深拷贝，不会修改
-公共题库内容。
+其他用户在创建试卷时直接传入公开题库的 `sourceTemplateId`。系统会将题库内容
+深拷贝为用户自己的试卷，不会修改公共题库内容。
 
 ## 题库热度
 
 系统预设和用户公开题库都包含 `heat` 字段，初始值为 `0`。以下行为成功后会
 原子增加来源题库的热度：
 
-- 调用 `POST /api/wx/templates/:id/copy` 复制系统或公开题库
 - 调用 `POST /api/wx/questionnaires` 并传入系统或公开题库的
   `sourceTemplateId`
 
-私人题库不会参与公共热度统计。题库列表默认先按 `heat` 从高到低排序；热度
-相同时，系统预设优先，然后按发布时间和创建时间倒序排列。
+题库列表默认先按 `heat` 从高到低排序；热度相同时，系统预设优先，然后按发布
+时间和创建时间倒序排列。
 
 模板模块启动时会幂等同步系统预设模板。每套预设位于
 `src/modules/wx/template/presets` 下的独立文件中，目前包括：
@@ -123,24 +121,24 @@ GET /api/wx/templates?scope=public
 - 确定恋爱关系前必聊的问题
 - 婚前深度沟通问卷
 
-系统预设由代码维护，用户不能直接修改或删除。调用
-`POST /api/wx/templates/:id/copy` 会深拷贝一份私人模板，之后用户可以通过
-`PUT /api/wx/templates/:id` 修改自己的副本，基础预设不会受到影响。
+系统预设由代码维护，用户不能直接修改或删除。用户从预设创建试卷后，可以自由
+修改自己的试卷，基础预设不会受到影响。
 
 ## 核心流程
 
 1. 小程序调用 `wx.login`，将 `code` 传给 `POST /api/wx/auth/login`。
-2. 调用 `GET /api/wx/templates?scope=system` 查看系统预设。
-3. 调用 `POST /api/wx/templates/:id/copy` 复制为私人模板后自由修改；也可以在
-   `POST /api/wx/questionnaires` 中直接传入 `sourceTemplateId` 创建独立问卷。
-4. 通过 `PUT /api/wx/questionnaires/:id` 修改问卷内容。
-5. 调用 `POST /api/wx/questionnaires/:id/shares` 获取问卷分享 token。
-6. 好友登录后调用 `GET /api/wx/shares/:token` 查看问卷，再调用
+2. 调用 `GET /api/wx/templates?scope=library` 查看题库广场。
+3. 调用 `POST /api/wx/questionnaires` 并传入 `sourceTemplateId`，将公共题库直接
+   保存为自己的独立试卷。
+4. 通过 `PUT /api/wx/questionnaires/:id` 修改试卷内容。
+5. 调用 `POST /api/wx/questionnaires/:id/publish-to-library` 上传公开题库快照。
+6. 调用 `POST /api/wx/questionnaires/:id/shares` 获取试卷分享 token。
+7. 好友登录后调用 `GET /api/wx/shares/:token` 查看问卷，再调用
    `POST /api/wx/shares/:token/answers` 提交答卷。
-7. 答题者调用 `POST /api/wx/answers/:id/shares` 分享答卷，出题者登录后通过
+8. 答题者调用 `POST /api/wx/answers/:id/shares` 分享答卷，出题者登录后通过
    `GET /api/wx/shares/:token` 查看。答卷分享会校验当前用户必须是出题者或
    答题者。
-8. 出题者调用 `GET /api/wx/answers?scope=received` 查看收到的答卷；答题者使用
+9. 出题者调用 `GET /api/wx/answers?scope=received` 查看收到的答卷；答题者使用
    `scope=submitted` 查看自己提交的答卷。
 
 模板、问卷及答卷内容采用 JSON 字段，小程序可以自行定义题型结构。例如：

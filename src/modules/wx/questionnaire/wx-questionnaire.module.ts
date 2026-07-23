@@ -5,12 +5,14 @@ import { WxAnswerEntity } from '../entities/wx-answer.entity'
 import { WxQuestionnaireEntity } from '../entities/wx-questionnaire.entity'
 import { WxShareEntity } from '../entities/wx-share.entity'
 import { WxTemplateEntity } from '../entities/wx-template.entity'
+import { WxTemplatePublishingModule } from '../template/wx-template-publishing.module'
 import { WxQuestionnaireController } from './wx-questionnaire.controller'
 import { WxQuestionnaireService } from './wx-questionnaire.service'
 
 @Module({
 	imports: [
 		WxAuthModule,
+		WxTemplatePublishingModule,
 		TypeOrmModule.forFeature([
 			WxAnswerEntity,
 			WxQuestionnaireEntity,
